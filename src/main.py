@@ -22,8 +22,9 @@ async def startup_event(settings: Settings = Depends(get_settings))->None:
     print('\n Service has started up')
     try:
         OSWConfidenceService()
-    except:
+    except Exception as e:
         print('Killing the service')
+        print(e)
         parent_pid = os.getpid()
         parent = psutil.Process(parent_pid)
         for child in parent.children(recursive=True):
