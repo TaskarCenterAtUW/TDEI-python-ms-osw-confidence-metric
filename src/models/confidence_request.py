@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 @dataclass
-class ConfidenceRequested():
+class ConfidenceRequest:
     jobId: str
     data_file:str
     meta_file:str
