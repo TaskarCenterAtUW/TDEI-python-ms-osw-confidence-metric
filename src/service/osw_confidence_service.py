@@ -10,7 +10,6 @@ from dataclasses import asdict
 import threading
 import os
 
-
 logging.basicConfig()
 
 
@@ -31,40 +30,38 @@ class OSWConfidenceService:
         # Make the downloads folder if it does not exist
         if not os.path.exists(self.settings.get_download_folder()):
             os.makedirs(self.settings.get_download_folder())
-        
-    
-    def subscribe(self) -> None:
-        self.incoming_topic.subscribe(self.settings.incoming_topic_subscription,self.process)
 
-    
-    def process(self, msg : QueueMessage):
+    def subscribe(self) -> None:
+        self.incoming_topic.subscribe(self.settings.incoming_topic_subscription, self.process)
+
+    def process(self, msg: QueueMessage):
         print('Confidence calculation request received')
         self.logger.info(msg)
         # Have to start with the processing of message
         try:
             confidence_request = ConfidenceRequest(**msg.data)
             # create a thread and complete the message
-            process_thread = threading.Thread(target=self.calculate_confidence,args=[confidence_request])
+            process_thread = threading.Thread(target=self.calculate_confidence, args=[confidence_request])
             process_thread.start()
         except TypeError as e:
             print(' Type error occured')
             print(e)
             print(msg)
             # Need to send failure message here.
-    
-    def calculate_confidence(self, request:ConfidenceRequest):
+
+    def calculate_confidence(self, request: ConfidenceRequest):
         # make a directory for the request
         jobId = request.jobId
-        local_base_path = os.path.join(self.settings.get_download_folder(),jobId)
+        local_base_path = os.path.join(self.settings.get_download_folder(), jobId)
         if not os.path.exists(local_base_path):
             os.makedirs(local_base_path)
-        osw_file_local_path = os.path.join(local_base_path,'osw.zip') # Assuming zip file
-        self.download_single_file(request.data_file,osw_file_local_path)
-        meta_file_local_path = os.path.join(local_base_path,'meta.json') # Assuming json file
-        self.download_single_file(request.meta_file,meta_file_local_path)
+        osw_file_local_path = os.path.join(local_base_path, 'osw.zip')  # Assuming zip file
+        self.download_single_file(request.data_file, osw_file_local_path)
+        meta_file_local_path = os.path.join(local_base_path, 'meta.json')  # Assuming json file
+        self.download_single_file(request.meta_file, meta_file_local_path)
         # The meta file is at `meta_file_local_path`
         # The osw file is at `osw_file_local_path`
-        # insert code for for calculation here.
+        # insert code for calculation here.
 
         # creating a dummy response now
         response = ConfidenceResponse(
@@ -77,27 +74,26 @@ class OSWConfidenceService:
         self.logger.info('Sending response for confidence')
         self.send_response_message(response)
 
-    
     # utility functions for downloading and other stuff
-    def download_single_file(self, remote_url:str, local_path:str):
+    def download_single_file(self, remote_url: str, local_path: str):
         self.logger.info(f'Downloading {remote_url}')
         self.logger.info(f' to  {local_path}')
-        file = self.storage_client.get_file_from_url(self.settings.storage_container_name,remote_url)
-        
+        file = self.storage_client.get_file_from_url(self.settings.storage_container_name, remote_url)
+
         try:
             if file.file_path:
-                with open(local_path,'wb') as blob:
+                with open(local_path, 'wb') as blob:
                     blob.write(file.get_stream())
                 self.logger.info(' File downloaded ')
             else:
                 self.logger.info('File path not found')
         except Exception as e:
             self.logger.error(e)
-    
+
     # Sending response message
     def send_response_message(self, response: ConfidenceResponse):
         queue_message = QueueMessage.data_from({
-            'messageType':'confidence-response',
+            'messageType': 'confidence-response',
             'data': asdict(response)
         })
         self.outgoing_topic.publish(queue_message)

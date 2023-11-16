@@ -41,3 +41,13 @@ Note: Replace the endpoints with the actual endpoints
 
 `uvicorn src.main:app --reload`
 
+### Run Unit tests
+
+####  Run Coverage
+`python -m coverage run --source=src -m unittest discover -s tests/unit_tests`
+
+####  Run Coverage Report
+`coverage report`
+
+####  Run Coverage HTML report
+`coverage html`
