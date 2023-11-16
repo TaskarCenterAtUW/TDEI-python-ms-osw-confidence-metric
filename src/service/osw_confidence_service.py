@@ -74,14 +74,16 @@ class OSWConfidenceService:
             status='finished',
             message='Processed successfully'
         )
+        self.logger.info('Sending response for confidence')
         self.send_response_message(response)
 
     
     # utility functions for downloading and other stuff
     def download_single_file(self, remote_url:str, local_path:str):
-        self.logger.info('Downloading ',remote_url)
-        self.logger.info(' to ', local_path)
-        file = self.storage_client.get_file_from_url(remote_url)
+        self.logger.info(f'Downloading {remote_url}')
+        self.logger.info(f' to  {local_path}')
+        file = self.storage_client.get_file_from_url(self.settings.storage_container_name,remote_url)
+        
         try:
             if file.file_path:
                 with open(local_path,'wb') as blob:
