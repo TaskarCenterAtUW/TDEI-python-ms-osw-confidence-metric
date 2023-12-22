@@ -8,3 +8,4 @@ class ConfidenceResponse:
     confidence_library_version: str
     status: str
     message: str
+    success: bool

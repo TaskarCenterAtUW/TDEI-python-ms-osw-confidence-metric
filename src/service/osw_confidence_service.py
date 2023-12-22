@@ -39,7 +39,7 @@ class OSWConfidenceService:
         self.logger.info(msg)
         # Have to start with the processing of message
         try:
-            confidence_request = ConfidenceRequest(**msg.data)
+            confidence_request = ConfidenceRequest(**msg)
             # create a thread and complete the message
             process_thread = threading.Thread(target=self.calculate_confidence, args=[confidence_request])
             process_thread.start()
@@ -51,28 +51,29 @@ class OSWConfidenceService:
 
     def calculate_confidence(self, request: ConfidenceRequest):
         # make a directory for the request
-        jobId = request.jobId
+        jobId = request.data.jobId
         local_base_path = os.path.join(self.settings.get_download_folder(), jobId)
         if not os.path.exists(local_base_path):
             os.makedirs(local_base_path)
         osw_file_local_path = os.path.join(local_base_path, 'osw.zip')  # Assuming zip file
-        self.download_single_file(request.data_file, osw_file_local_path)
+        self.download_single_file(request.data.data_file, osw_file_local_path)
         meta_file_local_path = os.path.join(local_base_path, 'meta.json')  # Assuming json file
-        self.download_single_file(request.meta_file, meta_file_local_path)
+        self.download_single_file(request.data.meta_file, meta_file_local_path)
         # The meta file is at `meta_file_local_path`
         # The osw file is at `osw_file_local_path`
         # insert code for calculation here.
 
         # creating a dummy response now
         response = ConfidenceResponse(
-            jobId=request.jobId,
+            jobId=jobId,
             confidence_level='90.0',
             confidence_library_version='v1.0',
             status='finished',
-            message='Processed successfully'
+            message='Processed successfully',
+            success=True
         )
         self.logger.info('Sending response for confidence')
-        self.send_response_message(response)
+        self.send_response_message(response, request)
 
     # utility functions for downloading and other stuff
     def download_single_file(self, remote_url: str, local_path: str):
@@ -91,9 +92,10 @@ class OSWConfidenceService:
             self.logger.error(e)
 
     # Sending response message
-    def send_response_message(self, response: ConfidenceResponse):
+    def send_response_message(self, response: ConfidenceResponse, request: ConfidenceRequest):
         queue_message = QueueMessage.data_from({
-            'messageType': 'confidence-response',
+            'messageId': request.messageId,
+            'messageType': request.messageType,
             'data': asdict(response)
         })
         self.outgoing_topic.publish(queue_message)
