@@ -39,7 +39,7 @@ class OSWConfidenceService:
         self.logger.info(msg)
         # Have to start with the processing of message
         try:
-            confidence_request = ConfidenceRequest(**msg)
+            confidence_request = ConfidenceRequest( messageType=msg.messageType, messageId=msg.messageId,data= msg.data)
             # create a thread and complete the message
             process_thread = threading.Thread(target=self.calculate_confidence, args=[confidence_request])
             process_thread.start()
