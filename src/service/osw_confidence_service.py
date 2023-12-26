@@ -4,7 +4,7 @@ from src.config import Settings
 from python_ms_core import Core
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 from src.models.confidence_request import ConfidenceRequest
-from src.models.confidence_response import ConfidenceResponse
+from src.models.confidence_response import ConfidenceResponse, ResponseData
 from dataclasses import asdict
 
 import threading
@@ -39,7 +39,7 @@ class OSWConfidenceService:
         self.logger.info(msg)
         # Have to start with the processing of message
         try:
-            confidence_request = ConfidenceRequest( messageType=msg.messageType, messageId=msg.messageId,data= msg.data)
+            confidence_request = ConfidenceRequest(messageType=msg.messageType, messageId=msg.messageId, data=msg.data)
             # create a thread and complete the message
             process_thread = threading.Thread(target=self.calculate_confidence, args=[confidence_request])
             process_thread.start()
@@ -64,16 +64,21 @@ class OSWConfidenceService:
         # insert code for calculation here.
 
         # creating a dummy response now
+
         response = ConfidenceResponse(
-            jobId=jobId,
-            confidence_level='90.0',
-            confidence_library_version='v1.0',
-            status='finished',
-            message='Processed successfully',
-            success=True
+            messageId=request.messageId,
+            messageType=request.messageType,
+            data=ResponseData(
+                jobId=jobId,
+                confidence_level='90.0',
+                confidence_library_version='v1.0',
+                status='finished',
+                message='Processed successfully',
+                success=True
+            ).__dict__
         )
         self.logger.info('Sending response for confidence')
-        self.send_response_message(response, request)
+        self.send_response_message(response)
 
     # utility functions for downloading and other stuff
     def download_single_file(self, remote_url: str, local_path: str):
@@ -92,10 +97,10 @@ class OSWConfidenceService:
             self.logger.error(e)
 
     # Sending response message
-    def send_response_message(self, response: ConfidenceResponse, request: ConfidenceRequest):
+    def send_response_message(self, response: ConfidenceResponse):
         queue_message = QueueMessage.data_from({
-            'messageId': request.messageId,
-            'messageType': request.messageType,
-            'data': asdict(response)
+            'messageId': response.messageId,
+            'messageType': response.messageType,
+            'data': asdict(response.data)
         })
         self.outgoing_topic.publish(queue_message)
