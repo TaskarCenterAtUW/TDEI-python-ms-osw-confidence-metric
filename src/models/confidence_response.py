@@ -2,9 +2,19 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ConfidenceResponse:
+class ResponseData:
     jobId: str
     confidence_level: float
     confidence_library_version: str
     status: str
     message: str
+    success: bool
+
+@dataclass
+class ConfidenceResponse:
+    messageType: str
+    messageId: str
+    data: ResponseData
+
+    def __post_init__(self):
+        self.data = ResponseData(**self.data)

@@ -51,3 +51,36 @@ Note: Replace the endpoints with the actual endpoints
 
 ####  Run Coverage HTML report
 `coverage html`
+
+
+### Incoming Request
+
+```json
+{
+  "messageId": "0b41ebc5-350c-42d3-90af-3af4ad3628fb",
+  "messageType": "confidence-calculation",
+  "data":{
+    "jobId": "0b41ebc5-350c-42d3-90af-3af4ad3628fb",
+    "data_file": "https://tdeisamplestorage.blob.core.windows.net/osw/2023/03/0b41ebc5-350c-42d3-90af-3af4ad3628fb/osw_file.zip",
+    "meta_file": "https://tdeisamplestorage.blob.core.windows.net/osw/2023/03/0b41ebc5-350c-42d3-90af-3af4ad3628fb/meta.json",
+    "trigger_type": "manual"
+  }
+}
+```
+
+### Outgoing Request
+
+```json
+{
+  "messageId": "0b41ebc5-350c-42d3-90af-3af4ad3628fb",
+  "messageType":"confidence-calculation",
+  "data":{
+    "jobId":"0b41ebc5-350c-42d3-90af-3af4ad3628fb",
+    "confidence_level": "90.0",
+    "confidence_library_version": "v1.0",
+    "status": "finished",
+    "message": "Processed successfully",
+    "success": true
+  }
+}
+```
