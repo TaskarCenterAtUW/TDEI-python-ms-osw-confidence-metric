@@ -2,6 +2,7 @@
 import os
 import logging
 import threading
+import time
 from dataclasses import asdict
 from src.config import Settings
 from python_ms_core import Core
@@ -86,8 +87,6 @@ class OSWConfidenceService:
             ).__dict__
         )
 
-        # clean_up(path=osw_file_local_path)
-        # clean_up(path=meta_file_local_path)
         self.logger.info('Sending response for confidence')
         self.send_response_message(response)
 

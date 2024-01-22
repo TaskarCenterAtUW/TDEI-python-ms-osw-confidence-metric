@@ -10,9 +10,6 @@ from python_confidence_metric.osm_data_handler import OSMDataHandler
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
-username = 'sujatam@gaussiansolutions.com'
-password = 'R@lling#1'
-
 
 class OSWConfidenceMetric:
     def __init__(self, zip_file):
@@ -28,7 +25,6 @@ class OSWConfidenceMetric:
         with zipfile.ZipFile(self.zip_file_path, 'r') as zip_ref:
             zip_ref.extractall(self.output)
             extracted_files = zip_ref.namelist()
-            print(extracted_files)
             required_files = ['nodes']
             file_locations = None
 
@@ -54,20 +50,13 @@ class OSWConfidenceMetric:
         return output_file
 
     def calculate_score(self):
-        print(self.__dict__)
-        osm_data_handler = OSMDataHandler(username=username, password=password)
+        osm_data_handler = OSMDataHandler(username=self.settings.username, password=self.settings.password)
         area_analyzer = AreaAnalyzer(osm_data_handler=osm_data_handler)
         start_time = time.time()
         score = area_analyzer.calculate_area_confidence_score(file_path=self.convex_file)
         print("--- %s seconds ---" % (time.time() - start_time))
         clean_up(path=self.convex_file)
         for extracted_file in self.extracted_files:
-            clean_up(path=extracted_file)
+            clean_up(path=os.path.join(self.output, extracted_file))
+        clean_up(path=os.path.join(self.output, '__MACOSX'))
         return score
-
-
-if __name__ == '__main__':
-    _settings = Settings()
-    zip_path = os.path.join(_settings.get_download_folder(), 'osw.zip')
-    metric = OSWConfidenceMetric(zip_file=zip_path)
-    score = metric.calculate_score()
