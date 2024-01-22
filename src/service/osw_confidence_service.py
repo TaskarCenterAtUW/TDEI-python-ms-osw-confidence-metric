@@ -1,14 +1,15 @@
 # Service that handles the confidence calculation
+import os
 import logging
+import threading
+from dataclasses import asdict
 from src.config import Settings
 from python_ms_core import Core
-from python_ms_core.core.queue.models.queue_message import QueueMessage
 from src.models.confidence_request import ConfidenceRequest
+from src.service.osw_confidence_metric import OSWConfidenceMetric
+from python_ms_core.core.queue.models.queue_message import QueueMessage
 from src.models.confidence_response import ConfidenceResponse, ResponseData
-from dataclasses import asdict
-
-import threading
-import os
+from src.service.helper import clean_up
 
 logging.basicConfig()
 
@@ -44,17 +45,15 @@ class OSWConfidenceService:
             process_thread = threading.Thread(target=self.calculate_confidence, args=[confidence_request])
             process_thread.start()
         except TypeError as e:
-            print(' Type error occured')
-            print(e)
-            print(msg)
-            # Need to send failure message here.
+            self.logger.error(' Type error occured')
+            self.logger.error(e)
+            self.logger.error(msg)
 
     def calculate_confidence(self, request: ConfidenceRequest):
+        local_base_path = self.settings.get_download_folder()
         # make a directory for the request
         jobId = request.data.jobId
-        local_base_path = os.path.join(self.settings.get_download_folder(), jobId)
-        if not os.path.exists(local_base_path):
-            os.makedirs(local_base_path)
+
         osw_file_local_path = os.path.join(local_base_path, 'osw.zip')  # Assuming zip file
         self.download_single_file(request.data.data_file, osw_file_local_path)
         meta_file_local_path = os.path.join(local_base_path, 'meta.json')  # Assuming json file
@@ -62,7 +61,16 @@ class OSWConfidenceService:
         # The meta file is at `meta_file_local_path`
         # The osw file is at `osw_file_local_path`
         # insert code for calculation here.
+        metric = OSWConfidenceMetric(zip_file=osw_file_local_path)
 
+        # Calculate the score using calculate_score method
+        score = metric.calculate_score()
+
+        # Use the obtained score in your function
+        print('Score from OSWConfidenceMetric:', score)
+        is_success = False
+        if score is not None and score >= 0:
+            is_success = True
         # creating a dummy response now
 
         response = ConfidenceResponse(
@@ -70,13 +78,16 @@ class OSWConfidenceService:
             messageType=request.messageType,
             data=ResponseData(
                 jobId=jobId,
-                confidence_level='90.0',
+                confidence_level=score,
                 confidence_library_version='v1.0',
                 status='finished',
-                message='Processed successfully',
-                success=True
+                message='Processed successfully' if is_success else 'Processed failed',
+                success=is_success
             ).__dict__
         )
+
+        # clean_up(path=osw_file_local_path)
+        # clean_up(path=meta_file_local_path)
         self.logger.info('Sending response for confidence')
         self.send_response_message(response)
 

@@ -1,16 +1,24 @@
-from typing import Union
-from fastapi import FastAPI, Request, APIRouter, Depends, status
-from fastapi.responses import Response
-from python_ms_core import Core
-from .config import Settings
-from functools import lru_cache
-from src.service.osw_confidence_service import OSWConfidenceService
 import os
 import psutil
+
+from threading import Thread
+from src.config import Settings
+from functools import lru_cache
+from fastapi import FastAPI, APIRouter, Depends, status
+from src.service.osw_confidence_service import OSWConfidenceService
 
 app = FastAPI()
 
 prefix_router = APIRouter(prefix='/health')
+
+
+def start_confidence_metric():
+    OSWConfidenceService()
+
+
+def run_in_background(target):
+    thread = Thread(target=target)
+    thread.start()
 
 
 @lru_cache()
@@ -22,7 +30,7 @@ def get_settings():
 async def startup_event(settings: Settings = Depends(get_settings)) -> None:
     print('\n Service has started up')
     try:
-        OSWConfidenceService()
+        run_in_background(start_confidence_metric)
     except Exception as e:
         print('Killing the service')
         print(e)

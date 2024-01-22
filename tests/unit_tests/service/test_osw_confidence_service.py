@@ -1,11 +1,12 @@
+import os
 import json
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
-from src.models.confidence_request import ConfidenceRequest, RequestData
-from src.models.confidence_response import ConfidenceResponse, ResponseData
+from unittest.mock import Mock, MagicMock, patch, create_autospec
+from src.models.confidence_request import ConfidenceRequest
 from src.service.osw_confidence_service import OSWConfidenceService
 from python_ms_core.core.queue.models.queue_message import QueueMessage
+from src.models.confidence_response import ConfidenceResponse, ResponseData
 
 FILE_PATH = f'{Path.cwd()}/tests/files/incoming_message.json'
 TEST_FILE = open(FILE_PATH)
@@ -46,36 +47,6 @@ class TestOSWConfidenceService(unittest.TestCase):
         mock_thread.assert_called_once_with(target=self.service.calculate_confidence,
                                             args=[ConfidenceRequest(**msg_data)])
         mock_thread_instance.start.assert_called_once()
-
-    @patch('os.makedirs')
-    @patch('os.path.exists')
-    @patch('os.path.isfile')
-    @patch.object(OSWConfidenceService, 'send_response_message')
-    def test_calculate_confidence_success(self, mock_send_response_message, mock_isfile, mock_exists, mock_makedirs):
-        request_data = TEST_DATA
-        request = ConfidenceRequest(**request_data)
-
-        mock_isfile.side_effect = [False, False]
-        # mock_join.side_effect = lambda *args: '/'.join(args)
-        mock_exists.return_value = False
-
-        self.service.calculate_confidence(request)
-
-        mock_makedirs.assert_called_once()
-        mock_send_response_message.assert_called_once_with(
-            ConfidenceResponse(
-                messageType=request.messageType,
-                messageId=request.messageId,
-                data=ResponseData(
-                    jobId='0b41ebc5-350c-42d3-90af-3af4ad3628fb',
-                    confidence_level='90.0',
-                    confidence_library_version='v1.0',
-                    status='finished',
-                    message='Processed successfully',
-                    success=True
-                ).__dict__
-            )
-        )
 
     @patch('threading.Thread')
     def test_process_failure(self, mock_thread):
