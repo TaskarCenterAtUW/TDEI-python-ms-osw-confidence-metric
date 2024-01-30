@@ -7,8 +7,8 @@ from typing import Tuple, List
 import geopandas as gpd
 from src.config import Settings
 from src.service.helper import clean_up
-from python_confidence_metric.area_analyzer import AreaAnalyzer
-from python_confidence_metric.osm_data_handler import OSMDataHandler
+from osw_confidence_metric.area_analyzer import AreaAnalyzer
+from osw_confidence_metric.osm_data_handler import OSMDataHandler
 
 logging.basicConfig()
 warnings.filterwarnings('ignore', category=DeprecationWarning)

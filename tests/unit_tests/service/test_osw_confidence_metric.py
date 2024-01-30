@@ -24,8 +24,8 @@ class TestOSWConfidenceMetric(unittest.TestCase):
                              '{"type":"FeatureCollection","features":[{"type":"Feature","properties":{},"geometry":{"coordinates":[[[-122.32125181758033,47.62012777661363],[-122.32103130968568,47.6184432558874],[-122.31924624577745,47.61885377434356],[-122.3192147446495,47.62007823266089],[-122.32125181758033,47.62012777661363]]],"type":"Polygon"}}]}')
             zip_ref.writestr('other_file.txt', 'Some random content')
 
-    @patch('python_confidence_metric.osm_data_handler.OSMDataHandler')
-    @patch('python_confidence_metric.area_analyzer.AreaAnalyzer')
+    @patch('osw_confidence_metric.osm_data_handler.OSMDataHandler')
+    @patch('osw_confidence_metric.area_analyzer.AreaAnalyzer')
     def test_init(self, mock_area_analyzer, mock_osm_data_handler):
         # Test initialization of OSWConfidenceMetric
         confidence_metric = OSWConfidenceMetric(self.zip_file_path)
@@ -38,9 +38,9 @@ class TestOSWConfidenceMetric(unittest.TestCase):
         self.assertIsNotNone(confidence_metric.extracted_files)
         self.assertIsNotNone(confidence_metric.convex_file)
 
-    @patch('python_confidence_metric.osm_data_handler.OSMDataHandler')
-    @patch('python_confidence_metric.area_analyzer.AreaAnalyzer')
-    @patch('python_confidence_metric.area_analyzer.AreaAnalyzer.calculate_area_confidence_score')
+    @patch('osw_confidence_metric.osm_data_handler.OSMDataHandler')
+    @patch('osw_confidence_metric.area_analyzer.AreaAnalyzer')
+    @patch('osw_confidence_metric.area_analyzer.AreaAnalyzer.calculate_area_confidence_score')
     def test_calculate_score(self, mock_score_calculation,
                              mock_area_analyzer, mock_osm_data_handler):
         # Test calculate_score method
