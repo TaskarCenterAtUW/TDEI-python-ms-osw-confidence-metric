@@ -1,8 +1,7 @@
 import os
-import shutil
 import unittest
 from tempfile import TemporaryDirectory
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.service.helper import clean_up
 
 

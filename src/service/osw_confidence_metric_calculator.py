@@ -14,9 +14,9 @@ logging.basicConfig()
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 
-class OSWConfidenceMetric:
+class OSWConfidenceMetricCalculator:
     """
-    OSWConfidenceMetric class analyzes OpenStreetMap (OSM) node data to calculate a confidence score for a specified area.
+    OSWConfidenceMetricCalculator class analyzes OpenStreetMap (OSM) node data to calculate a confidence score for a specified area.
 
     Attributes:
     - `zip_file_path` (str): The path to the input zip file containing OSM node data.

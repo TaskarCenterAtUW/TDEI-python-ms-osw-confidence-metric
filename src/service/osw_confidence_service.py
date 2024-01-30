@@ -6,7 +6,7 @@ from dataclasses import asdict
 from src.config import Settings
 from python_ms_core import Core
 from src.models.confidence_request import ConfidenceRequest
-from src.service.osw_confidence_metric import OSWConfidenceMetric
+from src.service.osw_confidence_metric_calculator import OSWConfidenceMetricCalculator
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 from src.models.confidence_response import ConfidenceResponse, ResponseData
 
@@ -99,13 +99,13 @@ class OSWConfidenceService:
         osw_file_local_path = os.path.join(local_base_path, 'osw.zip')  # Assuming zip file
         self.download_single_file(request.data.data_file, osw_file_local_path)
 
-        metric = OSWConfidenceMetric(zip_file=osw_file_local_path)
+        metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path)
 
         # Calculate the score using calculate_score method
         score = metric.calculate_score()
 
         # Use the obtained score in your function
-        print('Score from OSWConfidenceMetric:', score)
+        print('Score from OSWConfidenceMetricCalculator:', score)
         is_success = False
         if score is not None and score >= 0:
             is_success = True
