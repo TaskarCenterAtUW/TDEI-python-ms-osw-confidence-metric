@@ -35,9 +35,9 @@ class OSWConfidenceMetricCalculator:
 
     Usage:
     ```python
-    # Example usage of the OSWConfidenceMetric class
+    # Example usage of the OSWConfidenceMetricCalculator class
     zip_file_path = "path/to/osm_data.zip"
-    confidence_metric = OSWConfidenceMetric(zip_file=zip_file_path)
+    confidence_metric = OSWConfidenceMetricCalculator(zip_file=zip_file_path)
     confidence_score = confidence_metric.calculate_score()
     print("Area Confidence Score:", confidence_score)
     ```
@@ -45,7 +45,7 @@ class OSWConfidenceMetricCalculator:
 
     def __init__(self, zip_file: str):
         """
-        Initializes an instance of the OSWConfidenceMetric class.
+        Initializes an instance of the OSWConfidenceMetricCalculator class.
 
         Parameters:
         - `zip_file` (str): The path to the input zip file containing OSM node data.
