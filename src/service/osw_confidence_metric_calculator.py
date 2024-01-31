@@ -10,6 +10,7 @@ from src.service.helper import clean_up
 from osw_confidence_metric.area_analyzer import AreaAnalyzer
 from osw_confidence_metric.osm_data_handler import OSMDataHandler
 
+
 logging.basicConfig()
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
@@ -27,6 +28,7 @@ class OSWConfidenceMetricCalculator:
     - `nodes_file` (str): File path to the extracted nodes file from the input zip.
     - `extracted_files` (list): List of all files extracted from the input zip.
     - `convex_file` (str): File path to the GeoJSON file representing the convex hull of the extracted OSM nodes.
+    - `job_id` (str): A unique identifier.
 
     Methods:
     - `unzip_nodes_file(self) -> Tuple[str, List[str]]`: Extracts the nodes file from the input zip, excluding unnecessary files and directories.
@@ -43,14 +45,16 @@ class OSWConfidenceMetricCalculator:
     ```
     """
 
-    def __init__(self, zip_file: str):
+    def __init__(self, zip_file: str, job_id: str):
         """
         Initializes an instance of the OSWConfidenceMetricCalculator class.
 
         Parameters:
         - `zip_file` (str): The path to the input zip file containing OSM node data.
+        - `job_id` (str): The unique identifier.
         """
         self.zip_file_path = zip_file
+        self.job_id = job_id
         self.settings = Settings()
         self.username = self.settings.username
         self.password = self.settings.password
@@ -93,7 +97,7 @@ class OSWConfidenceMetricCalculator:
         convex_hull = merged_geometry.convex_hull
         convex_hull_gdf = gpd.GeoDataFrame(geometry=[convex_hull])
 
-        output_file = os.path.join(self.output, 'convex_hull.geojson')
+        output_file = os.path.join(self.output, f'{self.job_id}.geojson')
         convex_hull_gdf.to_file(output_file, driver='GeoJSON')
         return output_file
 

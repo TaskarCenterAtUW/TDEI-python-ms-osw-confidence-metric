@@ -1,7 +1,6 @@
 import os
 import zipfile
 import unittest
-from src.service.helper import clean_up
 from tempfile import TemporaryDirectory
 from unittest.mock import patch, MagicMock
 from src.service.osw_confidence_metric_calculator import OSWConfidenceMetricCalculator
@@ -13,6 +12,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
         self.temp_dir = TemporaryDirectory()
         self.zip_file_path = os.path.join(self.temp_dir.name, 'test_data.zip')
         self.create_sample_zip_file(self.zip_file_path)
+        self.job_id = '1234'
 
     def tearDown(self):
         self.temp_dir.cleanup()
@@ -28,7 +28,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
     @patch('osw_confidence_metric.area_analyzer.AreaAnalyzer')
     def test_init(self, mock_area_analyzer, mock_osm_data_handler):
         # Test initialization of OSWConfidenceMetric
-        confidence_metric = OSWConfidenceMetricCalculator(self.zip_file_path)
+        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id)
         self.assertEqual(confidence_metric.zip_file_path, self.zip_file_path)
         self.assertIsNotNone(confidence_metric.settings)
         self.assertIsNotNone(confidence_metric.username)
@@ -44,7 +44,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
     def test_calculate_score(self, mock_score_calculation,
                              mock_area_analyzer, mock_osm_data_handler):
         # Test calculate_score method
-        confidence_metric = OSWConfidenceMetricCalculator(self.zip_file_path)
+        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id)
 
         # Mocking external dependencies
         mock_osm_data_handler_instance = MagicMock()
@@ -62,7 +62,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
 
     def test_unzip_nodes_file(self):
         # Test unzip_nodes_file method
-        confidence_metric = OSWConfidenceMetricCalculator(self.zip_file_path)
+        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id)
 
         # Perform the test
         nodes_file, extracted_files = confidence_metric.unzip_nodes_file()
@@ -73,13 +73,13 @@ class TestOSWConfidenceMetric(unittest.TestCase):
 
     def test_get_convex_hull(self):
         # Test get_convex_hull method
-        confidence_metric = OSWConfidenceMetricCalculator(self.zip_file_path)
+        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id)
 
         # Perform the test
         convex_file = confidence_metric.get_convex_hull()
 
         # Assertions
-        self.assertEqual(convex_file, os.path.join(confidence_metric.output, 'convex_hull.geojson'))
+        self.assertEqual(convex_file, os.path.join(confidence_metric.output, f'{self.job_id}.geojson'))
 
 
 if __name__ == '__main__':

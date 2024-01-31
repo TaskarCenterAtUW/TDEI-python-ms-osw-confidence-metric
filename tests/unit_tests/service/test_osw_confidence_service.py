@@ -1,17 +1,24 @@
 import os
 import json
+import shutil
+import zipfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch, create_autospec
-from src.models.confidence_request import ConfidenceRequest
+import osw_confidence_metric
+from tempfile import TemporaryDirectory
+from unittest.mock import Mock, MagicMock, patch
 from src.service.osw_confidence_service import OSWConfidenceService
+from src.service.osw_confidence_metric_calculator import OSWConfidenceMetricCalculator
 from python_ms_core.core.queue.models.queue_message import QueueMessage
+from src.models.confidence_request import ConfidenceRequest, RequestData
 from src.models.confidence_response import ConfidenceResponse, ResponseData
 
 FILE_PATH = f'{Path.cwd()}/tests/files/incoming_message.json'
+ZIP_FILE_PATH = f'{Path.cwd()}/tests/files/osw.zip'
 TEST_FILE = open(FILE_PATH)
 TEST_DATA = json.loads(TEST_FILE.read())
 DOWNLOAD_PATH = f'{Path.cwd()}/src/downloads'
+
 
 
 class TestOSWConfidenceService(unittest.TestCase):
@@ -25,6 +32,14 @@ class TestOSWConfidenceService(unittest.TestCase):
             self.service.storage_client = MagicMock()
             self.service.logger = MagicMock()
             self.service.settings = MagicMock()
+            self.service.settings.get_download_folder = MagicMock()
+            self.service.settings.get_download_folder.return_value = DOWNLOAD_PATH
+            # self.service.calculate_confidence = MagicMock()
+            # self.service.calculate_confidence.return_value = 0.75
+
+    def create_sample_zip_file(self, test_zip_file_path):
+        shutil.copy(ZIP_FILE_PATH, test_zip_file_path)
+
 
     @patch.object(OSWConfidenceService, 'subscribe')
     def test_start_listening(self, mock_subscribe):
@@ -48,6 +63,44 @@ class TestOSWConfidenceService(unittest.TestCase):
                                             args=[ConfidenceRequest(**msg_data)])
         mock_thread_instance.start.assert_called_once()
 
+    @patch.object(OSWConfidenceService, 'download_single_file')
+    @patch('osw_confidence_metric.osm_data_handler.OSMDataHandler')
+    @patch('osw_confidence_metric.area_analyzer.AreaAnalyzer')
+    @patch('osw_confidence_metric.area_analyzer.AreaAnalyzer.calculate_area_confidence_score')
+    @patch.object(OSWConfidenceService, 'send_response_message')
+    def test_calculate_confidence(self, mock_send_response_message, mock_score_calculation, mock_area_analyzer, mock_osm_data_handler,
+                                  mock_download_single_file):
+        msg_data = TEST_DATA
+        request = ConfidenceRequest(**msg_data)
+        job_id = request.data.jobId
+        zip_file_path = f'{DOWNLOAD_PATH}/{job_id}.zip'
+        self.create_sample_zip_file(zip_file_path)
+
+        mock_download_single_file.return_value = zip_file_path
+        mock_osm_data_handler_instance = MagicMock()
+        mock_area_analyzer_instance = MagicMock()
+        mock_area_analyzer_instance.calculate_area_confidence_score.return_value = 0.75
+        mock_area_analyzer.return_value = mock_area_analyzer_instance
+        mock_osm_data_handler.return_value = mock_osm_data_handler_instance
+        mock_score_calculation.return_value = 0.75
+
+        self.service.calculate_confidence(request=request)
+
+        response = ConfidenceResponse(
+            messageId=request.messageId,
+            messageType=request.messageType,
+            data=ResponseData(
+                jobId=job_id,
+                confidence_level=0.75,
+                confidence_library_version=osw_confidence_metric.__version__,
+                status='finished',
+                message='Processed successfully',
+                success=True
+            ).__dict__
+        )
+
+        mock_send_response_message.assert_called_once_with(response=response)
+
     @patch('threading.Thread')
     def test_process_failure(self, mock_thread):
         msg_data = {'messageType': 'confidence-calculation', 'data': {}}
@@ -60,15 +113,17 @@ class TestOSWConfidenceService(unittest.TestCase):
 
         mock_thread.assert_not_called()
 
-    @patch.object(OSWConfidenceService, 'send_response_message')
-    def test_send_response_message(self, mock_send_response_message):
+    def test_send_response_message(self):
+        msg_data = TEST_DATA
+        request = ConfidenceRequest(**msg_data)
+        job_id = request.data.jobId
         response = ConfidenceResponse(
-            messageId='123',
-            messageType='confidence_message',
+            messageId=request.messageId,
+            messageType=request.messageType,
             data=ResponseData(
-                jobId='0b41ebc5-350c-42d3-90af-3af4ad3628fb',
-                confidence_level='90.0',
-                confidence_library_version='v1.0',
+                jobId=job_id,
+                confidence_level=0.75,
+                confidence_library_version=osw_confidence_metric.__version__,
                 status='finished',
                 message='Processed successfully',
                 success=True
@@ -76,8 +131,6 @@ class TestOSWConfidenceService(unittest.TestCase):
         )
 
         self.service.send_response_message(response=response)
-
-        mock_send_response_message.assert_called_once_with(response=response)
 
 
 class TestOSWConfidenceServiceDownload(unittest.TestCase):

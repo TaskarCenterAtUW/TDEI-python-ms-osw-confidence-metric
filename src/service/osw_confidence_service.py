@@ -2,6 +2,7 @@
 import os
 import logging
 import threading
+import osw_confidence_metric
 from dataclasses import asdict
 from src.config import Settings
 from python_ms_core import Core
@@ -96,10 +97,10 @@ class OSWConfidenceService:
         # make a directory for the request
         jobId = request.data.jobId
 
-        osw_file_local_path = os.path.join(local_base_path, 'osw.zip')  # Assuming zip file
+        osw_file_local_path = os.path.join(local_base_path, f'{jobId}.zip')
         self.download_single_file(request.data.data_file, osw_file_local_path)
 
-        metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path)
+        metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path, job_id=jobId)
 
         # Calculate the score using calculate_score method
         score = metric.calculate_score()
@@ -117,7 +118,7 @@ class OSWConfidenceService:
             data=ResponseData(
                 jobId=jobId,
                 confidence_level=score,
-                confidence_library_version='v1.0',
+                confidence_library_version=osw_confidence_metric.__version__,
                 status='finished',
                 message='Processed successfully' if is_success else 'Processed failed',
                 success=is_success
@@ -125,7 +126,7 @@ class OSWConfidenceService:
         )
 
         self.logger.info('Sending response for confidence')
-        self.send_response_message(response)
+        self.send_response_message(response=response)
 
     def download_single_file(self, remote_url: str, local_path: str):
         """
