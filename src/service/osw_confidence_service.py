@@ -64,6 +64,7 @@ class OSWConfidenceService:
         """
         Subscribes the service to the incoming confidence calculation topic.
         """
+        self.logger.info('Start subscribing.')
         self.incoming_topic.subscribe(self.settings.incoming_topic_subscription, self.process)
 
     def process(self, msg: QueueMessage):
