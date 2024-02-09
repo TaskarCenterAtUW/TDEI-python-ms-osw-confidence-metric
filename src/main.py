@@ -11,15 +11,6 @@ app = FastAPI()
 prefix_router = APIRouter(prefix='/health')
 
 
-def start_confidence_metric():
-    OSWConfidenceService()
-
-
-def run_in_background(target):
-    thread = Thread(target=target)
-    thread.start()
-
-
 @lru_cache()
 def get_settings():
     return Settings()
@@ -29,7 +20,7 @@ def get_settings():
 async def startup_event(settings: Settings = Depends(get_settings)) -> None:
     print('\n Service has started up')
     try:
-        run_in_background(start_confidence_metric)
+        OSWConfidenceService()
     except Exception as e:
         print('Killing the service')
         print(e)
