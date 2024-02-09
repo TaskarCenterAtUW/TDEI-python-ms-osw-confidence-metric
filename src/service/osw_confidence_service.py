@@ -64,6 +64,7 @@ class OSWConfidenceService:
         """
         Subscribes the service to the incoming confidence calculation topic.
         """
+        self.logger.info('Start subscribing.')
         self.incoming_topic.subscribe(self.settings.incoming_topic_subscription, self.process)
 
     def process(self, msg: QueueMessage):
@@ -73,7 +74,7 @@ class OSWConfidenceService:
         Parameters:
         - `msg` (QueueMessage): The incoming queue message.
         """
-        print('Confidence calculation request received')
+        self.logger.info('Confidence calculation request received')
         self.logger.info(msg)
         # Have to start with the processing of the message
         try:
@@ -106,7 +107,7 @@ class OSWConfidenceService:
         score = metric.calculate_score()
 
         # Use the obtained score in your function
-        print('Score from OSWConfidenceMetricCalculator:', score)
+        self.logger.info('Score from OSWConfidenceMetricCalculator:', score)
         is_success = False
         if score is not None and score >= 0:
             is_success = True
