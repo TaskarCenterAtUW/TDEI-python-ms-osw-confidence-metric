@@ -20,6 +20,8 @@ python 3.10
 #### Set up env file, create a .env file at project root level 
 
 ```shell
+OSM_USERNAME=xxx
+OSM_PASSWORD=xxx
 QUEUECONNECTION=Endpoint=sb://xxxxxxxxxxxxx
 STORAGECONNECTION=DefaultEndpointsProtocol=https;xxxxxxxxxxxxx
 CONFIDENCE_REQ_TOPIC=<Confidence request topic>
