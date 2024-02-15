@@ -84,3 +84,6 @@ Note: Replace the endpoints with the actual endpoints
   }
 }
 ```
+
+Local expose command
+`docker run --env-file .env -p 8080:8080 -t osw-confidence-metric`

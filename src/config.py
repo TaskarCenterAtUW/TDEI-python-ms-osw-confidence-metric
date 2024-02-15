@@ -17,3 +17,8 @@ class Settings(BaseSettings):
     def get_download_folder(self) -> str:
         root_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(root_dir, 'downloads')
+    def get_assets_folder(self) -> str:
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(root_dir, 'assets')
+        
+ 

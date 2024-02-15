@@ -1,0 +1,11 @@
+{
+    "publishedDate": "2024-02-15T04:49:54.439Z",
+    "messageId": "8683a4647f6743339d80f5ee09c99304",
+    "messageType": "OSW_ON_DEMAND_CONFIDENCE_METRIC_RESPONSE_WORKFLOW",
+    "data": {
+        "jobId": "184",
+        "data_file": "https://tdeisamplestorage.blob.core.windows.net/osw/2024/1/0c29017c-f0b9-433e-ae13-556982f2520b/8683a4647f6743339d80f5ee09c99304/osw-valid.zip",
+        "meta_file": "https://tdeisamplestorage.blob.core.windows.net/osw/2024/1/0c29017c-f0b9-433e-ae13-556982f2520b/8683a4647f6743339d80f5ee09c99304/metadata.json",
+        "trigger_type": "manual"
+    }
+}
