@@ -20,4 +20,4 @@ class Settings(BaseSettings):
         return os.path.join(root_dir, 'downloads')
 
     def is_simulated(self) -> bool:
-        return self.simulate != ""
+        return self.simulate == "YES"
