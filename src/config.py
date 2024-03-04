@@ -13,7 +13,11 @@ class Settings(BaseSettings):
     storage_container_name: str = os.environ.get('CONTAINER_NAME', 'osw')
     username: str = os.environ.get('OSM_USERNAME', '')
     password: str = os.environ.get('OSM_PASSWORD', '')
+    simulate: str = os.environ.get('SIMULATE_METRIC','') # For simulation
 
     def get_download_folder(self) -> str:
         root_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(root_dir, 'downloads')
+
+    def is_simulated(self) -> bool:
+        return self.simulate == "YES"

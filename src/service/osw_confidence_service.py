@@ -59,6 +59,12 @@ class OSWConfidenceService:
         # Make the downloads folder if it does not exist
         if not os.path.exists(self.settings.get_download_folder()):
             os.makedirs(self.settings.get_download_folder())
+        if self.settings.is_simulated():
+            self.logger.info('Simulated')
+        else:
+            self.logger.info('Not simulated')
+        self.logger.info(self.settings.is_simulated())
+        self.logger.info(self.settings.simulate)
 
     def subscribe(self) -> None:
         """
@@ -95,25 +101,47 @@ class OSWConfidenceService:
         - `request` (ConfidenceRequest): The confidence calculation request.
         """
         local_base_path = self.settings.get_download_folder()
-        # make a directory for the request
-        jobId = request.data.jobId
 
-        osw_file_local_path = os.path.join(local_base_path, f'{jobId}.zip')
-        self.download_single_file(request.data.data_file, osw_file_local_path)
+        if not self.settings.is_simulated() :
 
-        metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path, job_id=jobId)
+            # make a directory for the request
+            jobId = request.data.jobId
 
-        # Calculate the score using calculate_score method
-        score = metric.calculate_score()
+            osw_file_local_path = os.path.join(local_base_path, f'{jobId}.zip')
+            self.download_single_file(request.data.data_file, osw_file_local_path)
 
-        # Use the obtained score in your function
-        self.logger.info('Score from OSWConfidenceMetricCalculator:', score)
-        is_success = False
-        if score is not None and score >= 0:
+            metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path, job_id=jobId)
+
+            # Calculate the score using calculate_score method
+            score = metric.calculate_score()
+
+            # Use the obtained score in your function
+            self.logger.info('Score from OSWConfidenceMetricCalculator:', score)
+            is_success = False
+            if score is not None and score >= 0:
+                is_success = True
+            # creating a dummy response now
+
+            response = ConfidenceResponse(
+                messageId=request.messageId,
+                messageType=request.messageType,
+                data=ResponseData(
+                    jobId=jobId,
+                    confidence_level=score,
+                    confidence_library_version=osw_confidence_metric.__version__,
+                    status='finished',
+                    message='Processed successfully' if is_success else 'Processed failed',
+                    success=is_success
+                ).__dict__
+            )
+
+            self.logger.info('Sending response for confidence')
+            self.send_response_message(response=response)
+        else : # Simulated
+            score = 80
+            jobId = request.data.jobId
             is_success = True
-        # creating a dummy response now
-
-        response = ConfidenceResponse(
+            response = ConfidenceResponse(
             messageId=request.messageId,
             messageType=request.messageType,
             data=ResponseData(
@@ -124,10 +152,10 @@ class OSWConfidenceService:
                 message='Processed successfully' if is_success else 'Processed failed',
                 success=is_success
             ).__dict__
-        )
+            )
 
-        self.logger.info('Sending response for confidence')
-        self.send_response_message(response=response)
+            self.logger.info('Sending response for confidence')
+            self.send_response_message(response=response)
 
     def download_single_file(self, remote_url: str, local_path: str):
         """

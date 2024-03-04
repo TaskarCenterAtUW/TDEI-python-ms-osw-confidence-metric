@@ -86,3 +86,11 @@ Note: Replace the endpoints with the actual endpoints
   }
 }
 ```
+
+### Simulation
+If you want to simulate the confidence calculation, add another environment variable with name
+`SIMULATE_METRIC` and its value to `YES`
+
+```
+SIMULATE_METRIC=YES
+```
