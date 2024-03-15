@@ -1,24 +1,23 @@
-from typing import Union
-from fastapi import FastAPI, Request, APIRouter, Depends,status
-from fastapi.responses import Response
-from python_ms_core import Core
-from .config import Settings
-from functools import lru_cache
-from src.service.osw_confidence_service import OSWConfidenceService
 import os
 import psutil
-
+from threading import Thread
+from src.config import Settings
+from functools import lru_cache
+from fastapi import FastAPI, APIRouter, Depends, status
+from src.service.osw_confidence_service import OSWConfidenceService
 
 app = FastAPI()
 
 prefix_router = APIRouter(prefix='/health')
 
+
 @lru_cache()
 def get_settings():
     return Settings()
 
+
 @app.on_event('startup')
-async def startup_event(settings: Settings = Depends(get_settings))->None:
+async def startup_event(settings: Settings = Depends(get_settings)) -> None:
     print('\n Service has started up')
     try:
         OSWConfidenceService()
@@ -31,9 +30,11 @@ async def startup_event(settings: Settings = Depends(get_settings))->None:
             child.kill()
         parent.kill()
 
-@app.get('/',status_code=status.HTTP_200_OK)
-@prefix_router.get('/',status_code=status.HTTP_200_OK)
+
+@app.get('/', status_code=status.HTTP_200_OK)
+@prefix_router.get('/', status_code=status.HTTP_200_OK)
 def health_check():
-    return "I'm health !!"
+    return "I'm healthy !!"
+
 
 app.include_router(prefix_router)

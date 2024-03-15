@@ -1,6 +1,9 @@
 fastapi==0.88.0
 python-dotenv==0.21.0
 uvicorn==0.20.0
-python-ms-core==0.0.16
+python-ms-core==0.0.17
 psutil==5.9.5
+coverage==7.2.7
+html_testRunner==1.2.1
+osw-confidence-metric==0.0.3
 
