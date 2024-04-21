@@ -1,4 +1,6 @@
+import json 
 import os
+import pandas as pd
 import time
 import zipfile
 import logging
@@ -45,7 +47,7 @@ class OSWConfidenceMetricCalculator:
     ```
     """
 
-    def __init__(self, zip_file: str, job_id: str):
+    def __init__(self, zip_file: str, job_id: str, sub_regions_file: str = None ):
         """
         Initializes an instance of the OSWConfidenceMetricCalculator class.
 
@@ -54,6 +56,7 @@ class OSWConfidenceMetricCalculator:
         - `job_id` (str): The unique identifier.
         """
         self.zip_file_path = zip_file
+        self.sub_regions_file = sub_regions_file
         self.job_id = job_id
         self.settings = Settings()
         self.username = self.settings.username
@@ -101,20 +104,53 @@ class OSWConfidenceMetricCalculator:
         convex_hull_gdf.to_file(output_file, driver='GeoJSON')
         return output_file
 
-    def calculate_score(self) -> float:
+    # def calculate_score(self) -> JSON:
+    def calculate_score(self):
         """
         Initiates the process of calculating the confidence score for the area represented by the convex hull.
 
         Returns:
         - `score` (float): The calculated confidence score.
         """
+        # print("in calculate_Score")
         osm_data_handler = OSMDataHandler(username=self.settings.username, password=self.settings.password)
         area_analyzer = AreaAnalyzer(osm_data_handler=osm_data_handler)
         start_time = time.time()
         score = area_analyzer.calculate_area_confidence_score(file_path=self.convex_file)
         logging.info("--- %s seconds ---" % (time.time() - start_time))
+        if self.sub_regions_file:
+            sub_regions_gdf = gpd.read_file(self.sub_regions_file)
+            conf_scores:List = []
+            for index, row in sub_regions_gdf.iterrows():
+                logging.info(" calculating confidence metric for sub_region: ", index , " of job_id: ", self.job_id)
+                temp_gdf = gpd.GeoDataFrame([ {'geometry': row.geometry} ], crs=sub_regions_gdf.crs)
+                split_ext = os.path.splitext(self.sub_regions_file)
+                temp_gdf_file_name = split_ext[0]+"_"+str(index)+split_ext[1]
+                start_time = time.time()
+                temp_gdf.to_file(temp_gdf_file_name, driver='GeoJSON')
+                sub_score = area_analyzer.calculate_area_confidence_score(file_path=temp_gdf_file_name)
+                logging.info("--- %s seconds ---" % (time.time() - start_time))
+                conf_scores.append(sub_score)
+            sub_regions_gdf['confidence_score'] = conf_scores            
+
+        main_region_gdf = gpd.read_file(self.convex_file)
+        assert(len(main_region_gdf) == 1)
+        main_polygon = main_region_gdf.iloc[0].geometry
+        main_result_gdf = gpd.GeoDataFrame([ {'geometry': main_polygon} ], crs=main_region_gdf.crs)
+        main_result_gdf['confidence_score'] = [score]
+        
+        if self.sub_regions_file:
+            # main_result_gdf = main_result_gdf.append(sub_regions_gdf, ignore_index=True)
+            main_result_gdf = pd.concat([main_result_gdf, sub_regions_gdf], ignore_index=True)
+            
+        # print(main_result_gdf)
+        results = main_result_gdf.to_json()
+        results = json.loads(results)
+        # print(results)
+        return results
+
+    def clean_up(self) -> None:
         clean_up(path=self.convex_file)
         for extracted_file in self.extracted_files:
             clean_up(path=os.path.join(self.output, extracted_file))
         clean_up(path=os.path.join(self.output, '__MACOSX'))
-        return score

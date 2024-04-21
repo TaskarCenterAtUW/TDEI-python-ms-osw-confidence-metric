@@ -6,6 +6,7 @@ class RequestData:
     jobId: str
     data_file: str
     meta_file: str
+    sub_regions_file: str
     trigger_type: str
 
 

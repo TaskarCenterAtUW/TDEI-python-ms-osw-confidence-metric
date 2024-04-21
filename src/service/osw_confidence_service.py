@@ -100,14 +100,24 @@ class OSWConfidenceService:
 
         osw_file_local_path = os.path.join(local_base_path, f'{jobId}.zip')
         self.download_single_file(request.data.data_file, osw_file_local_path)
+        
+        # if regions file is not null, then download it as well
+        sub_regions_file_local_path = None
+        if request.data.sub_regions_file:
+            sub_regions_file_local_path = os.path.join(local_base_path, f'{jobId}_subregions.zip')
 
-        metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path, job_id=jobId)
+        metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path, job_id=jobId, sub_regions_file=sub_regions_file_local_path)
 
         # Calculate the score using calculate_score method
         score = metric.calculate_score()
 
         # Use the obtained score in your function
         self.logger.info('Score from OSWConfidenceMetricCalculator:', score)
+        
+        # clean up
+        metric.clean_up()
+        self.logger.info(' Cleaned up the temp directory')
+        
         is_success = False
         if score is not None and score >= 0:
             is_success = True
