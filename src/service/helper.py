@@ -61,7 +61,6 @@ def is_valid_geojson(file_path):
     # Validate the GeoJSON data against the schema
     try:
         validate(instance=data, schema=schema)
-        print("The file is a valid GeoJSON.")
         return True
     except ValidationError as e:
         print("Validation Error:", e)
