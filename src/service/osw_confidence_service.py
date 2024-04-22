@@ -118,7 +118,6 @@ class OSWConfidenceService:
         metric.clean_up()
         self.logger.info(' Cleaned up the temp directory')
         
-        print("score:", scores)
         is_success = False
         if scores is not None:
             is_success = True
