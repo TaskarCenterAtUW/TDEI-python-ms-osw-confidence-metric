@@ -109,17 +109,18 @@ class OSWConfidenceService:
         metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path, job_id=jobId, sub_regions_file=sub_regions_file_local_path)
 
         # Calculate the score using calculate_score method
-        score = metric.calculate_score()
+        scores = metric.calculate_score()
 
         # Use the obtained score in your function
-        self.logger.info('Score from OSWConfidenceMetricCalculator:', score)
+        self.logger.info('Score from OSWConfidenceMetricCalculator:', scores)
         
         # clean up
         metric.clean_up()
         self.logger.info(' Cleaned up the temp directory')
         
+        print("score:", scores)
         is_success = False
-        if score is not None and score >= 0:
+        if scores is not None:
             is_success = True
         # creating a dummy response now
 
@@ -128,7 +129,7 @@ class OSWConfidenceService:
             messageType=request.messageType,
             data=ResponseData(
                 jobId=jobId,
-                confidence_level=score,
+                confidence_scores=scores,
                 confidence_library_version=osw_confidence_metric.__version__,
                 status='finished',
                 message='Processed successfully' if is_success else 'Processed failed',
