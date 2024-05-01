@@ -114,7 +114,8 @@ class OSWConfidenceService:
             # if regions file is not null, then download it as well
             sub_regions_file_local_path = None
             if request.data.sub_regions_file:
-                sub_regions_file_local_path = os.path.join(local_base_path, f'{jobId}_subregions.zip')
+                sub_regions_file_local_path = os.path.join(local_base_path, f'{jobId}_subregions.geojson')
+                self.download_single_file(request.data.sub_regions_file, sub_regions_file_local_path)
 
             metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path, job_id=jobId, sub_regions_file=sub_regions_file_local_path)
 
@@ -137,7 +138,7 @@ class OSWConfidenceService:
                 messageType=request.messageType,
                 data=ResponseData(
                     jobId=jobId,
-                    confidence_level=scores,
+                    confidence_scores=scores,
                     confidence_library_version=osw_confidence_metric.__version__,
                     status='finished',
                     message='Processed successfully' if is_success else 'Processed failed',

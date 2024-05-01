@@ -5,5 +5,5 @@ python-ms-core==0.0.18
 psutil==5.9.5
 coverage==7.2.7
 html_testRunner==1.2.1
-osw-confidence-metric==0.0.3
+osw-confidence-metric==0.0.4
 
