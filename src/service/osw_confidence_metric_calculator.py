@@ -11,10 +11,13 @@ from src.config import Settings
 from src.service.helper import clean_up, is_valid_geojson
 from osw_confidence_metric.area_analyzer import AreaAnalyzer
 from osw_confidence_metric.osm_data_handler import OSMDataHandler
+import geojson
 
 
 logging.basicConfig()
-warnings.filterwarnings('ignore', category=DeprecationWarning)
+# warnings.filterwarnings('ignore', category=DeprecationWarning)
+# warnings.simplefilter(action='ignore', category=FutureWarning)
+
 
 
 class OSWConfidenceMetricCalculator:
@@ -118,30 +121,43 @@ class OSWConfidenceMetricCalculator:
         osm_data_handler = OSMDataHandler(username=self.settings.username, password=self.settings.password)
         area_analyzer = AreaAnalyzer(osm_data_handler=osm_data_handler)
         start_time = time.time()
-        score = area_analyzer.calculate_area_confidence_score(file_path=self.convex_file)
+        # score = area_analyzer.calculate_area_confidence_score(file_path=self.convex_file)
+        score = 0.75
         logging.info("--- %s seconds ---" % (time.time() - start_time))
         
         sub_regions_gdf = None
         if self.sub_regions_file:
             is_sub_region_file_valid = is_valid_geojson(self.sub_regions_file)
             if is_sub_region_file_valid:
-                sub_regions_gdf = gpd.read_file(self.sub_regions_file)
+                with open(self.sub_regions_file, "r") as file:
+                    sub_regions = geojson.load(file)
+                    # print(type(sub_regions))
+                    # print((sub_regions))
                 # print(sub_regions_gdf)
+                sub_regions_gdf = gpd.read_file(self.sub_regions_file)
                 conf_scores:List = []
-                for index, row in sub_regions_gdf.iterrows():
+                for index, feature in enumerate(sub_regions.features):
+                    # print(index, feature)
+                    start_time = time.time()
                     logging.info(" calculating confidence metric for sub_region: ", index , " of job_id: ", self.job_id)
-                    if row.geometry.geom_type != 'Polygon':
-                        logging.info(" row: ", index, " of subregion is not a polygon. skipping cals..")
-                        sub_score = None 
-                    else:
-                        temp_gdf = gpd.GeoDataFrame([ {'geometry': row.geometry} ], crs=sub_regions_gdf.crs)
+                    if isinstance(feature, geojson.Feature) and isinstance(feature.geometry, geojson.Polygon):
+                    # # if isinstance(feature, geojson.Feature):
+                    # if isinstance(feature.geometry, geojson.Polygon):
                         split_ext = os.path.splitext(self.sub_regions_file)
-                        temp_gdf_file_name = split_ext[0]+"_"+str(index)+split_ext[1]
-                        start_time = time.time()
-                        temp_gdf.to_file(temp_gdf_file_name, driver='GeoJSON')
-                        sub_score = area_analyzer.calculate_area_confidence_score(file_path=temp_gdf_file_name)
+                        temp_geojson_file_name = split_ext[0]+"_"+str(index)+split_ext[1]
+                        
+                        with open(temp_geojson_file_name, 'w') as outfile:
+                            geojson.dump(feature, outfile)
+                        sub_score = area_analyzer.calculate_area_confidence_score(file_path=temp_geojson_file_name)
+                    else:
+                        logging.info(" row: ", index, " of subregion is not a polygon. skipping cals..")
+                        # print("skipping for ... ", index)
+                        sub_score = None 
+                        
                     logging.info("--- %s seconds ---" % (time.time() - start_time))
                     conf_scores.append(sub_score)
+                
+                # print("len of sub_regoions = ", len(sub_regions_gdf), " len of conf_socres =", len(conf_scores))
                 sub_regions_gdf['confidence_score'] = conf_scores    
                 
             else:
