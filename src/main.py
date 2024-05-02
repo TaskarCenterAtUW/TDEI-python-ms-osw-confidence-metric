@@ -1,9 +1,13 @@
+
 import os
 import psutil
 from threading import Thread
 from src.config import Settings
 from functools import lru_cache
 from fastapi import FastAPI, APIRouter, Depends, status
+
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 from src.service.osw_confidence_service import OSWConfidenceService
 
 app = FastAPI()

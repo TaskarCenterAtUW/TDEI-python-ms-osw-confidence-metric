@@ -12,7 +12,8 @@ class TestConfidenceRequest(unittest.TestCase):
             jobId='123',
             data_file='data.csv',
             meta_file='meta.json',
-            trigger_type='manual'
+            trigger_type='manual',
+            sub_regions_file=''
         )
 
         # Act
@@ -37,19 +38,22 @@ class TestConfidenceRequest(unittest.TestCase):
             jobId='123',
             data_file='data.csv',
             meta_file='meta.json',
-            trigger_type='manual'
+            trigger_type='manual',
+            sub_regions_file=''
         )
         req_body2 = RequestData(
             jobId='123',
             data_file='data.csv',
             meta_file='meta.json',
-            trigger_type='manual'
+            trigger_type='manual',
+            sub_regions_file=''
         )
         req_body3 = RequestData(
             jobId='456',
             data_file='data.csv',
             meta_file='meta.json',
-            trigger_type='manual'
+            trigger_type='manual',
+            sub_regions_file=''
         )
 
         request_instance_1 = ConfidenceRequest(messageId='MSG_1', messageType='MSG_TYPE_1', data=req_body1.__dict__)

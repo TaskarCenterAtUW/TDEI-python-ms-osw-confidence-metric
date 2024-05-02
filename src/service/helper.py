@@ -1,5 +1,8 @@
 import os
 import shutil
+import json
+from jsonschema import validate, ValidationError
+import requests
 
 def clean_up(path):
     """
@@ -41,3 +44,24 @@ def clean_up(path):
             folder = os.path.join(path)
             print(f' Removing Folder: {path}')
             shutil.rmtree(folder, ignore_errors=False)
+
+def is_valid_geojson(file_path):
+    # Load the official GeoJSON schema
+    geojson_schema_url = "https://geojson.org/schema/FeatureCollection.json"
+    schema = requests.get(geojson_schema_url).json()
+    
+    # Read and parse the JSON data from the file
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+    except json.JSONDecodeError:
+        print("Invalid JSON format.")
+        return False
+
+    # Validate the GeoJSON data against the schema
+    try:
+        validate(instance=data, schema=schema)
+        return True
+    except ValidationError as e:
+        print("Validation Error:", e)
+        return False
