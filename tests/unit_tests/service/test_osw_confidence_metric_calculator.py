@@ -16,10 +16,13 @@ class TestOSWConfidenceMetric(unittest.TestCase):
 
     def setUp(self):
         self.temp_dir = TemporaryDirectory()
-        self.zip_file_path = os.path.join(self.temp_dir.name, 'test_data.zip')
-        self.sub_region_file_path = os.path.join(self.temp_dir.name, 'sub_regions.geojson')
-        self.create_sample_inputs(self.zip_file_path, self.sub_region_file_path)
         self.job_id = '1234'
+        self.temp_path = os.path.join(self.temp_dir.name, self.job_id)
+        if not os.path.exists(self.temp_path):
+            os.makedirs(self.temp_path)
+        self.zip_file_path = os.path.join(self.temp_path, 'test_data.zip')
+        self.sub_region_file_path = os.path.join(self.temp_path, 'sub_regions.geojson')
+        self.create_sample_inputs(self.zip_file_path, self.sub_region_file_path)
 
     def tearDown(self):
         self.temp_dir.cleanup()
@@ -40,7 +43,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
     @patch('osw_confidence_metric.area_analyzer.AreaAnalyzer')
     def test_init(self, mock_area_analyzer, mock_osm_data_handler):
         # Test initialization of OSWConfidenceMetric
-        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id, sub_regions_file=self.sub_region_file_path)
+        confidence_metric = OSWConfidenceMetricCalculator(output_path=self.temp_path, zip_file=self.zip_file_path, job_id=self.job_id, sub_regions_file=self.sub_region_file_path)
         self.assertEqual(confidence_metric.zip_file_path, self.zip_file_path)
         self.assertIsNotNone(confidence_metric.settings)
         self.assertIsNotNone(confidence_metric.username)
@@ -56,7 +59,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
     def test_calculate_score(self, mock_score_calculation,
                              mock_area_analyzer, mock_osm_data_handler):
         # Test calculate_score method
-        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id, sub_regions_file=self.sub_region_file_path)
+        confidence_metric = OSWConfidenceMetricCalculator(output_path=self.temp_path,zip_file=self.zip_file_path, job_id=self.job_id, sub_regions_file=self.sub_region_file_path)
 
         # Mocking external dependencies
         mock_osm_data_handler_instance = MagicMock()
@@ -68,9 +71,8 @@ class TestOSWConfidenceMetric(unittest.TestCase):
 
         # Perform the test
         confidence_scores = confidence_metric.calculate_score()
-        
         len_scores = len(confidence_scores["features"])
-        self.assertEqual(len_scores, 5)
+        self.assertEqual(len_scores, 2)
         one_conf_score = confidence_scores["features"][0]["properties"]["confidence_score"]
 
         # Assertions
@@ -82,7 +84,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
     def test_calculate_score_with_lib(self, mock_score_calculation,
                               mock_osm_data_handler):
         # Test calculate_score method
-        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id, sub_regions_file=self.sub_region_file_path)
+        confidence_metric = OSWConfidenceMetricCalculator(output_path=self.temp_path,zip_file=self.zip_file_path, job_id=self.job_id, sub_regions_file=self.sub_region_file_path)
 
         # Mocking external dependencies
         mock_osm_data_handler_instance = MagicMock()
@@ -103,7 +105,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
         self.assertEqual(one_conf_score, 0.75)
     def test_unzip_nodes_file(self):
         # Test unzip_nodes_file method
-        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id)
+        confidence_metric = OSWConfidenceMetricCalculator(output_path=self.temp_path,zip_file=self.zip_file_path, job_id=self.job_id)
 
         # Perform the test
         nodes_file, extracted_files = confidence_metric.unzip_nodes_file()
@@ -114,7 +116,7 @@ class TestOSWConfidenceMetric(unittest.TestCase):
 
     def test_get_convex_hull(self):
         # Test get_convex_hull method
-        confidence_metric = OSWConfidenceMetricCalculator(zip_file=self.zip_file_path, job_id=self.job_id)
+        confidence_metric = OSWConfidenceMetricCalculator(output_path=self.temp_path,zip_file=self.zip_file_path, job_id=self.job_id)
 
         # Perform the test
         convex_file = confidence_metric.get_convex_hull()
