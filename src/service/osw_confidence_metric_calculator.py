@@ -50,7 +50,7 @@ class OSWConfidenceMetricCalculator:
     ```
     """
 
-    def __init__(self, zip_file: str, job_id: str, sub_regions_file: str = None ):
+    def __init__(self, output_path: str, zip_file: str, job_id: str, sub_regions_file: str = None ):
         """
         Initializes an instance of the OSWConfidenceMetricCalculator class.
 
@@ -64,7 +64,7 @@ class OSWConfidenceMetricCalculator:
         self.settings = Settings()
         self.username = self.settings.username
         self.password = self.settings.password
-        self.output = self.settings.get_download_folder()
+        self.output = output_path
         self.nodes_file, self.extracted_files = self.unzip_nodes_file()
         self.convex_file = self.get_convex_hull()
 
@@ -121,8 +121,8 @@ class OSWConfidenceMetricCalculator:
         osm_data_handler = OSMDataHandler(username=self.settings.username, password=self.settings.password)
         area_analyzer = AreaAnalyzer(osm_data_handler=osm_data_handler)
         start_time = time.time()
-        # score = area_analyzer.calculate_area_confidence_score(file_path=self.convex_file)
-        score = 0.75
+        score = area_analyzer.calculate_area_confidence_score(file_path=self.convex_file)
+        # score = 0.75
         logging.info("--- %s seconds ---" % (time.time() - start_time))
         
         sub_regions_gdf = None
@@ -180,10 +180,5 @@ class OSWConfidenceMetricCalculator:
         results = json.loads(results)
         return results
 
-    def clean_up(self) -> None:
-        clean_up(path=self.convex_file)
-        clean_up(path=self.sub_regions_file)
-        clean_up(path=self.zip_file_path)
-        for extracted_file in self.extracted_files:
-            clean_up(path=os.path.join(self.output, extracted_file))
-        clean_up(path=os.path.join(self.output, '__MACOSX'))
+    def clean_up_files(self) -> None:
+        clean_up(path=self.output)

@@ -101,8 +101,10 @@ class OSWConfidenceService:
         Parameters:
         - `request` (ConfidenceRequest): The confidence calculation request.
         """
-        local_base_path = self.settings.get_download_folder()
-
+        local_base_path = os.path.join(self.settings.get_download_folder(), request.data.jobId)
+        if not os.path.exists(local_base_path):
+            os.makedirs(local_base_path)
+        
         if not self.settings.is_simulated() :
 
             # make a directory for the request
@@ -117,7 +119,7 @@ class OSWConfidenceService:
                 sub_regions_file_local_path = os.path.join(local_base_path, f'{jobId}_subregions.geojson')
                 self.download_single_file(request.data.sub_regions_file, sub_regions_file_local_path)
 
-            metric = OSWConfidenceMetricCalculator(zip_file=osw_file_local_path, job_id=jobId, sub_regions_file=sub_regions_file_local_path)
+            metric = OSWConfidenceMetricCalculator(output_path=local_base_path, zip_file=osw_file_local_path, job_id=jobId, sub_regions_file=sub_regions_file_local_path)
 
             # Calculate the score using calculate_score method
             scores = metric.calculate_score()
@@ -126,7 +128,7 @@ class OSWConfidenceService:
             self.logger.info('Score from OSWConfidenceMetricCalculator:', scores)
             
             # clean up
-            metric.clean_up()
+            metric.clean_up_files()
             self.logger.info(' Cleaned up the temp directory')
             
             is_success = False
