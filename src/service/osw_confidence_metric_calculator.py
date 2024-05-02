@@ -182,6 +182,8 @@ class OSWConfidenceMetricCalculator:
 
     def clean_up(self) -> None:
         clean_up(path=self.convex_file)
+        clean_up(path=self.sub_regions_file)
+        clean_up(path=self.zip_file_path)
         for extracted_file in self.extracted_files:
             clean_up(path=os.path.join(self.output, extracted_file))
         clean_up(path=os.path.join(self.output, '__MACOSX'))

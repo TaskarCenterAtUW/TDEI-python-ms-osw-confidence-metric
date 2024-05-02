@@ -138,7 +138,7 @@ class OSWConfidenceService:
                 messageType=request.messageType,
                 data=ResponseData(
                     jobId=jobId,
-                    confidence_level=scores,
+                    confidence_scores=scores,
                     confidence_library_version=osw_confidence_metric.__version__,
                     status='finished',
                     message='Processed successfully' if is_success else 'Processed failed',
