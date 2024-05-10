@@ -105,56 +105,37 @@ class OSWConfidenceService:
         if not os.path.exists(local_base_path):
             os.makedirs(local_base_path)
         
-        if not self.settings.is_simulated() :
+        jobId = request.data.jobId
+        is_success = False
+        scores = None
 
-            # make a directory for the request
-            jobId = request.data.jobId
+        try:
+            if not self.settings.is_simulated() :
+                osw_file_local_path = os.path.join(local_base_path, f'{jobId}.zip')
+                self.download_single_file(request.data.data_file, osw_file_local_path)
+                
+                sub_regions_file_local_path = None
+                if request.data.sub_regions_file:
+                    sub_regions_file_local_path = os.path.join(local_base_path, f'{jobId}_subregions.geojson')
+                    self.download_single_file(request.data.sub_regions_file, sub_regions_file_local_path)
 
-            osw_file_local_path = os.path.join(local_base_path, f'{jobId}.zip')
-            self.download_single_file(request.data.data_file, osw_file_local_path)
-            
-            # if regions file is not null, then download it as well
-            sub_regions_file_local_path = None
-            if request.data.sub_regions_file:
-                sub_regions_file_local_path = os.path.join(local_base_path, f'{jobId}_subregions.geojson')
-                self.download_single_file(request.data.sub_regions_file, sub_regions_file_local_path)
+                metric = OSWConfidenceMetricCalculator(output_path=local_base_path, zip_file=osw_file_local_path, job_id=jobId, sub_regions_file=sub_regions_file_local_path)
 
-            metric = OSWConfidenceMetricCalculator(output_path=local_base_path, zip_file=osw_file_local_path, job_id=jobId, sub_regions_file=sub_regions_file_local_path)
-
-            # Calculate the score using calculate_score method
-            scores = metric.calculate_score()
-
-            # Use the obtained score in your function
-            self.logger.info('Score from OSWConfidenceMetricCalculator:', scores)
-            
-            # clean up
-            metric.clean_up_files()
-            self.logger.info(' Cleaned up the temp directory')
-            
-            is_success = False
-            if scores is not None:
+                scores = metric.calculate_score()
+                self.logger.info('Score from OSWConfidenceMetricCalculator:', scores)
+                
+                metric.clean_up_files()
+                self.logger.info(' Cleaned up the temp directory')
+                
+                if scores is not None:
+                    is_success = True
+            else : # Simulated
+                scores = json.loads('{"type": "FeatureCollection", "features": [{"id": "0", "type": "Feature", "properties": {"confidence_score": 0.75}, "geometry": {"type": "Polygon", "coordinates": [[[-122.1322201, 47.63528], [-122.1378655, 47.6353141], [-122.1395176, 47.6355614], [-122.1431969, 47.6365115], [-122.1443805, 47.6385402], [-122.1469453, 47.6460242], [-122.1429792, 47.6495373], [-122.1403351, 47.6497278], [-122.1325839, 47.6498422],  [-122.1321999, 47.6496722], [-122.1321845, 47.6496558], [-122.1285859, 47.6378078], [-122.1322201, 47.63528]]]}}]}')
                 is_success = True
-            
-            response = ConfidenceResponse(
-                messageId=request.messageId,
-                messageType=request.messageType,
-                data=ResponseData(
-                    jobId=jobId,
-                    confidence_scores=scores,
-                    confidence_library_version=osw_confidence_metric.__version__,
-                    status='finished',
-                    message='Processed successfully' if is_success else 'Processed failed',
-                    success=is_success
-                ).__dict__
-            )
+        except Exception as e:
+            self.logger.error(f"Failed to calculate confidence: {e}")
 
-            self.logger.info('Sending response for lib confidence')
-            self.send_response_message(response=response)
-        else : # Simulated
-            scores = json.loads('{"type": "FeatureCollection", "features": [{"id": "0", "type": "Feature", "properties": {"confidence_score": 0.75}, "geometry": {"type": "Polygon", "coordinates": [[[-122.1322201, 47.63528], [-122.1378655, 47.6353141], [-122.1395176, 47.6355614], [-122.1431969, 47.6365115], [-122.1443805, 47.6385402], [-122.1469453, 47.6460242], [-122.1429792, 47.6495373], [-122.1403351, 47.6497278], [-122.1325839, 47.6498422],  [-122.1321999, 47.6496722], [-122.1321845, 47.6496558], [-122.1285859, 47.6378078], [-122.1322201, 47.63528]]]}}]}')
-            jobId = request.data.jobId
-            is_success = True
-            response = ConfidenceResponse(
+        response = ConfidenceResponse(
             messageId=request.messageId,
             messageType=request.messageType,
             data=ResponseData(
@@ -162,14 +143,13 @@ class OSWConfidenceService:
                 confidence_scores=scores,
                 confidence_library_version=osw_confidence_metric.__version__,
                 status='finished',
-                message='Processed successfully' if is_success else 'Processed failed',
+                message='Processed successfully' if is_success else 'Process failed',
                 success=is_success
             ).__dict__
-            )
+        )
 
-            print(response)
-            self.logger.info('Sending response for dummy confidence')
-            self.send_response_message(response=response)
+        self.logger.info('Sending response for lib confidence')
+        self.send_response_message(response=response)
 
     def download_single_file(self, remote_url: str, local_path: str):
         """
