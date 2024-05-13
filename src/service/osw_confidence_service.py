@@ -134,6 +134,7 @@ class OSWConfidenceService:
                 is_success = True
         except Exception as e:
             self.logger.error(f"Failed to calculate confidence: {e}")
+            failed_message = f'Failed to calculate confidence : {e}'
 
         response = ConfidenceResponse(
             messageId=request.messageId,
@@ -143,7 +144,7 @@ class OSWConfidenceService:
                 confidence_scores=scores,
                 confidence_library_version=osw_confidence_metric.__version__,
                 status='finished',
-                message='Processed successfully' if is_success else 'Process failed',
+                message='Processed successfully' if is_success else failed_message,
                 success=is_success
             ).__dict__
         )
