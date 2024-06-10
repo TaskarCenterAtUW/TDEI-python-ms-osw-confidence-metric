@@ -4,7 +4,7 @@ from dataclasses import dataclass
 @dataclass
 class ResponseData:
     jobId: str
-    confidence_level: float
+    confidence_scores: dict
     confidence_library_version: str
     status: str
     message: str
