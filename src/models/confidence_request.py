@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 
 @dataclass
@@ -6,8 +7,8 @@ class RequestData:
     jobId: str
     data_file: str
     meta_file: str
-    sub_regions_file: str
     trigger_type: str
+    sub_regions_file: Optional[str] = None
 
 
 @dataclass

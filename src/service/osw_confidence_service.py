@@ -93,6 +93,18 @@ class OSWConfidenceService:
             self.logger.error(' Type error occurred')
             self.logger.error(e)
             self.logger.error(msg)
+            self.send_response_message(ConfidenceResponse(
+                messageId=msg.messageId,
+                messageType=msg.messageType,
+                data=ResponseData(
+                    jobId=msg.data['jobId'],
+                    confidence_scores=None,
+                    confidence_library_version=osw_confidence_metric.__version__,
+                    status='finished',
+                    message='Failed to process the request due to parsing error',
+                    success=False
+                ).__dict__
+            ))
 
     def calculate_confidence(self, request: ConfidenceRequest):
         """
