@@ -1,10 +1,11 @@
 {
-    "messageType":"confidence-calculation",
-    "data":{
-        "jobId":"0b41ebc5-350c-42d3-90af-3af4ad3628fb",
-        "data_file":"https://tdeisamplestorage.blob.core.windows.net/osw/2023/03/0b41ebc5-350c-42d3-90af-3af4ad3628fb/osw_file.zip",
-        "meta_file":"https://tdeisamplestorage.blob.core.windows.net/osw/2023/03/0b41ebc5-350c-42d3-90af-3af4ad3628fb/meta.json",
-        "trigger_type":"manual"
-    }
-    
+  "messageType": "confidence-calculation",
+  "messageId": "message_id",
+  "data": {
+    "jobId": "0b41ebc5-350c-42d3-90af-3af4ad3628fb",
+    "data_file": "https://tdeisamplestorage.blob.core.windows.net/osw/2023/03/0b41ebc5-350c-42d3-90af-3af4ad3628fb/osw_file.zip",
+    "meta_file": "https://tdeisamplestorage.blob.core.windows.net/osw/2023/03/0b41ebc5-350c-42d3-90af-3af4ad3628fb/meta.json",
+    "sub_regions_file": "",
+    "trigger_type": "manual"
+  }
 }
