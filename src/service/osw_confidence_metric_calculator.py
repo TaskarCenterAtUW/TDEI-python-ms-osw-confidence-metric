@@ -163,7 +163,7 @@ class OSWConfidenceMetricCalculator:
                 sub_regions_gdf['confidence_score'] = conf_scores    
                 
             else:
-                logging.info("Error occurred in reading input subregions file: ")
+                logger.info("Error occurred in reading input subregions file: ")
                 sub_regions_gdf = None
                         
 
