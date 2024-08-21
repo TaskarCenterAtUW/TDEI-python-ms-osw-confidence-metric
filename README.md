@@ -28,9 +28,11 @@ STORAGECONNECTION=DefaultEndpointsProtocol=https;xxxxxxxxxxxxx
 CONFIDENCE_REQ_TOPIC=<Confidence request topic>
 CONFIDENCE_REQ_SUB= <Confidence request subscription>
 CONFIDENCE_RES_TOPIC=<Confidence response topic>
-
+MAX_CONCURRENT_MESSAGES=xxx
 ```
 Note: Replace the endpoints with the actual endpoints of the environment you want to run the service in
+
+`MAX_CONCURRENT_MESSAGES` is the maximum number of concurrent messages that the service can handle. If not provided, defaults to 1
 
 ### Run the Server 
 

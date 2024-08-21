@@ -1,7 +1,5 @@
-
 import os
 import psutil
-from threading import Thread
 from src.config import Settings
 from functools import lru_cache
 from fastapi import FastAPI, APIRouter, Depends, status
