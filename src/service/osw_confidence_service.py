@@ -12,6 +12,8 @@ from src.models.confidence_request import ConfidenceRequest
 from src.service.osw_confidence_metric_calculator import OSWConfidenceMetricCalculator
 from python_ms_core.core.queue.models.queue_message import QueueMessage
 from src.models.confidence_response import ConfidenceResponse, ResponseData
+import threading
+
 
 logging.basicConfig()
 logger = logging.getLogger("OSWConfService")
@@ -53,7 +55,8 @@ class OSWConfidenceService:
         self.settings = Settings()
         self.incoming_topic = self.core.get_topic(self.settings.incoming_topic_name, max_concurrent_messages=self.settings.max_concurrent_messages)
         self.storage_client = self.core.get_storage_client()
-        self.subscribe()
+        self.listening_thread = threading.Thread(target=self.subscribe)
+        self.listening_thread.start()
         logger.info('Confidence service initiated')
         logger.info('Downloads folder ')
         logger.info(self.settings.get_download_folder())
@@ -204,3 +207,9 @@ class OSWConfidenceService:
         except Exception as e:
             logger.error(f'Failed to publish response: {e} for {response.data.jobId}')
 
+    def stop_listening(self):
+        """
+        Stops the service from listening to incoming messages.
+        """
+        self.listening_thread.join(timeout=0)
+        logger.info('Stopped listening to incoming messages')
