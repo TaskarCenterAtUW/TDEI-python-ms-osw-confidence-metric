@@ -15,6 +15,8 @@ import geojson
 
 
 logging.basicConfig()
+logger = logging.getLogger("OSWConfServiceMetricCalculation")
+logger.setLevel(logging.INFO)
 # warnings.filterwarnings('ignore', category=DeprecationWarning)
 # warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -123,7 +125,7 @@ class OSWConfidenceMetricCalculator:
         start_time = time.time()
         score = area_analyzer.calculate_area_confidence_score(file_path=self.convex_file)
         # score = 0.75
-        logging.info("--- %s seconds ---" % (time.time() - start_time))
+        logger.info("--- %s seconds ---" % (time.time() - start_time))
         
         sub_regions_gdf = None
         if self.sub_regions_file:
@@ -139,7 +141,7 @@ class OSWConfidenceMetricCalculator:
                 for index, feature in enumerate(sub_regions.features):
                     # print(index, feature)
                     start_time = time.time()
-                    logging.info(" calculating confidence metric for sub_region: ", index , " of job_id: ", self.job_id)
+                    logger.info(" calculating confidence metric for sub_region: ", index, " of job_id: ", self.job_id)
                     if isinstance(feature, geojson.Feature) and isinstance(feature.geometry, geojson.Polygon):
                     # # if isinstance(feature, geojson.Feature):
                     # if isinstance(feature.geometry, geojson.Polygon):
@@ -150,18 +152,18 @@ class OSWConfidenceMetricCalculator:
                             geojson.dump(feature, outfile)
                         sub_score = area_analyzer.calculate_area_confidence_score(file_path=temp_geojson_file_name)
                     else:
-                        logging.info(" row: ", index, " of subregion is not a polygon. skipping cals..")
+                        logger.info(" row: ", index, " of subregion is not a polygon. skipping cals..")
                         # print("skipping for ... ", index)
                         sub_score = None 
                         
-                    logging.info("--- %s seconds ---" % (time.time() - start_time))
+                    logger.info("--- %s seconds ---" % (time.time() - start_time))
                     conf_scores.append(sub_score)
                 
                 # print("len of sub_regoions = ", len(sub_regions_gdf), " len of conf_socres =", len(conf_scores))
                 sub_regions_gdf['confidence_score'] = conf_scores    
                 
             else:
-                logging.info("Error occurred in reading input subregions file: ")
+                logger.info("Error occurred in reading input subregions file: ")
                 sub_regions_gdf = None
                         
 
