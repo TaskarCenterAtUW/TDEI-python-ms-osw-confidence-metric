@@ -177,9 +177,8 @@ class OSWConfidenceService:
         """
         logger.info(f'Downloading {remote_url}')
         logger.info(f' to  {local_path}')
-        file = self.storage_client.get_file_from_url(self.settings.storage_container_name, remote_url)
-
         try:
+            file = self.storage_client.get_file_from_url(self.settings.storage_container_name, remote_url)
             if file.file_path:
                 with open(local_path, 'wb') as blob:
                     blob.write(file.get_stream())

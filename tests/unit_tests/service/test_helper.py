@@ -1,8 +1,9 @@
 import os
 import unittest
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
-from src.service.helper import clean_up
+from unittest.mock import patch, mock_open
+from src.service.helper import clean_up, is_valid_geojson
+from jsonschema import ValidationError
 
 
 class TestCleanUpFunction(unittest.TestCase):
@@ -68,6 +69,62 @@ class TestCleanUpFunction(unittest.TestCase):
         # Assertions
         mock_print.assert_any_call(f' Removing File: {test_file_path}')
         mock_print.assert_any_call(f' Removing Folder: {test_folder_path}')
+
+
+class TestIsValidGeoJSON(unittest.TestCase):
+
+    @patch('builtins.open', new_callable=mock_open, read_data='{"type": "FeatureCollection", "features": []}')
+    @patch('requests.get')
+    @patch('src.service.helper.validate')
+    def test_valid_geojson(self, mock_validate, mock_requests_get, mock_open_file):
+        # Arrange
+        geojson_schema_url = 'https://geojson.org/schema/FeatureCollection.json'
+        schema = {'type': 'object'}  # Example mock schema
+        mock_requests_get.return_value.json.return_value = schema  # Mock schema response
+        file_path = '/path/to/valid.geojson'
+
+        # Act
+        result = is_valid_geojson(file_path)
+
+        # Assert
+        mock_open_file.assert_called_once_with(file_path, 'r')  # Verify file is opened
+        mock_requests_get.assert_called_once_with(geojson_schema_url)  # Verify schema fetch
+        mock_validate.assert_called_once_with(
+            instance={'type': 'FeatureCollection', 'features': []}, schema=schema
+        )  # Check validation call
+        self.assertTrue(result)
+
+    @patch('builtins.open', new_callable=mock_open, read_data='invalid_json')
+    @patch('requests.get')
+    def test_is_valid_geojson_invalid_json(self, mock_requests_get, mock_open_file):
+        # Arrange
+        file_path = '/path/to/invalid.geojson'
+
+        # Act
+        result = is_valid_geojson(file_path)
+
+        # Assert
+        mock_open_file.assert_called_once_with(file_path, 'r')
+        self.assertFalse(result)
+
+    @patch('builtins.open', new_callable=mock_open, read_data='{"type": "FeatureCollection", "features": []}')
+    @patch('requests.get')
+    @patch('src.service.helper.validate', side_effect=ValidationError('Invalid GeoJSON'))
+    def test_is_valid_geojson_invalid_geojson(self, mock_validate, mock_requests_get, mock_open_file):
+        # Arrange
+        geojson_schema_url = 'https://geojson.org/schema/FeatureCollection.json'
+        schema = {'type': 'object'}
+        mock_requests_get.return_value.json.return_value = schema
+        file_path = '/path/to/invalid.geojson'
+
+        # Act
+        result = is_valid_geojson(file_path)
+
+        # Assert
+        mock_open_file.assert_called_once_with(file_path, 'r')
+        mock_requests_get.assert_called_once_with(geojson_schema_url)
+        mock_validate.assert_called_once()
+        self.assertFalse(result)
 
 
 if __name__ == '__main__':
