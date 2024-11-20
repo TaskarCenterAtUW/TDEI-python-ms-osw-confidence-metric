@@ -349,7 +349,6 @@ class TestOSWConfidenceServiceOther(unittest.TestCase):
         })
         mock_publish.assert_called_once()
         mock_topic.publish.assert_called_once_with(data=mock_queue_message.data_from.return_value)
-        print("Assertions passed for send_response_message.")
 
 
 
