@@ -52,17 +52,11 @@ jobs:
           # Run the tests and append output to the log file
           python -m coverage run --source=src -m unittest discover -s tests/unit_tests >> $log_file 2>&1
           echo -e "\nCoverage Report\n" >> $log_file
-          coverage report >> $log_file
-
-          # Check exit code of the tests
-          if [ $? -ne 0 ]; then
-            echo "Tests failed. Please check the log file for more details."
-            exit 1
-          fi
+          python -m coverage report >> $log_file
 
       - name: Check coverage
         run: |
-          coverage report --fail-under=85
+          python -m coverage report --fail-under=85
 
       - name: Upload report to Azure
         uses: LanceMcCarthy/Action-AzureBlobUpload@v2
