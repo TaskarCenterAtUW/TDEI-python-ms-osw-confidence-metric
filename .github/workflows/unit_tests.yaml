@@ -4,7 +4,7 @@ on:
     branches-ignore:
       - '**'
   pull_request:
-    branches: [main, dev, stage]
+    branches: [ main, dev, stage ]
 
 jobs:
   UnitTest:
@@ -42,6 +42,8 @@ jobs:
             echo "Unknown branch: $branch_name"
             exit 1
           fi
+          echo "Branch name: $branch_name"
+          
 
       - name: Run tests with coverage
         run: |
