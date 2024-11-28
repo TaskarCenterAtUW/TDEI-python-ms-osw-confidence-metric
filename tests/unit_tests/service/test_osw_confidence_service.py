@@ -1,3 +1,4 @@
+import os
 import json
 import shutil
 import unittest
@@ -13,7 +14,7 @@ FILE_PATH = f'{Path.cwd()}/tests/files/incoming_message.json'
 ZIP_FILE_PATH = f'{Path.cwd()}/tests/files/osw.zip'
 TEST_FILE = open(FILE_PATH)
 TEST_DATA = json.loads(TEST_FILE.read())
-DOWNLOAD_PATH = f'{Path.cwd()}/src/downloads'
+DOWNLOAD_PATH = f'{Path.cwd()}/downloads'
 
 
 def create_sample_zip_file(test_zip_file_path):
@@ -33,6 +34,7 @@ class TestOSWConfidenceService(unittest.TestCase):
             self.service.settings = MagicMock()
             self.service.settings.get_download_folder = MagicMock()
             self.service.settings.get_download_folder.return_value = DOWNLOAD_PATH
+            os.makedirs(DOWNLOAD_PATH, exist_ok=True)
 
     @patch.object(OSWConfidenceService, 'subscribe')
     def test_start_listening(self, mock_subscribe):
