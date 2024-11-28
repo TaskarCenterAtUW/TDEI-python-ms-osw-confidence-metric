@@ -1,10 +1,3 @@
-import sys
-
-if not sys.warnoptions:
-    import warnings
-
-    warnings.simplefilter("ignore")
-    print("Setting warning options ")
 import os
 import zipfile
 import unittest
@@ -13,7 +6,15 @@ from unittest.mock import patch, MagicMock, mock_open
 from src.service.osw_confidence_metric_calculator import OSWConfidenceMetricCalculator
 
 
-# area_analyzer.py file
+def create_sample_inputs(zip_file_path, sub_regions_file_path):
+    # Create a sample zip file for testing
+    with zipfile.ZipFile(zip_file_path, 'w') as zip_ref:
+        zip_ref.writestr('nodes.geojson',
+                         '{"type":"FeatureCollection","features":[{"type":"Feature","properties":{},"geometry":{"coordinates":[[[-122.32125181758033,47.62012777661363],[-122.32103130968568,47.6184432558874],[-122.31924624577745,47.61885377434356],[-122.3192147446495,47.62007823266089],[-122.32125181758033,47.62012777661363]]],"type":"Polygon"}}]}')
+        zip_ref.writestr('other_file.txt', 'Some random content')
+    with open(sub_regions_file_path, 'w') as sub_file:
+        sub_file.write(
+            '{"type": "FeatureCollection","features": [{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -122.6698850202686, 48.286157259313114 ], [ -122.63851879396184, 48.286157259313114 ],[ -122.63851879396184, 48.297497546405765 ], [-122.6698850202686,48.297497546405765 ], [ -122.6698850202686, 48.286157259313114 ] ] ] }  }]}')
 
 
 class TestOSWConfidenceMetric(unittest.TestCase):
@@ -26,22 +27,11 @@ class TestOSWConfidenceMetric(unittest.TestCase):
             os.makedirs(self.temp_path)
         self.zip_file_path = os.path.join(self.temp_path, 'test_data.zip')
         self.sub_region_file_path = os.path.join(self.temp_path, 'sub_regions.geojson')
-        self.create_sample_inputs(self.zip_file_path, self.sub_region_file_path)
+        create_sample_inputs(self.zip_file_path, self.sub_region_file_path)
 
     def tearDown(self):
         self.temp_dir.cleanup()
 
-    def create_sample_inputs(self, zip_file_path, sub_regions_file_path):
-        # Create a sample zip file for testing
-        with zipfile.ZipFile(zip_file_path, 'w') as zip_ref:
-            zip_ref.writestr('nodes.geojson',
-                             '{"type":"FeatureCollection","features":[{"type":"Feature","properties":{},"geometry":{"coordinates":[[[-122.32125181758033,47.62012777661363],[-122.32103130968568,47.6184432558874],[-122.31924624577745,47.61885377434356],[-122.3192147446495,47.62007823266089],[-122.32125181758033,47.62012777661363]]],"type":"Polygon"}}]}')
-            zip_ref.writestr('other_file.txt', 'Some random content')
-        with open(sub_regions_file_path, 'w') as sub_file:
-            # sub_file.write('{"type": "FeatureCollection","features": [{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -122.320233281114923, 47.619285516250514 ], [ -122.320233281114923, 47.618626781785451 ], [ -122.321031309685679, 47.618443255887399 ], [ -122.321141563633006, 47.619285516250514 ], [ -122.320233281114923, 47.619285516250514 ] ] ] } },{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -122.320233281114923, 47.619285516250514 ], [ -122.321141563633006, 47.619285516250514 ], [ -122.321251817580332, 47.620127776613629 ], [ -122.320233281114923, 47.620103004637258 ], [ -122.320233281114923, 47.619285516250514 ] ] ] } },{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -122.320233281114923, 47.619285516250514 ], [ -122.319235138533656, 47.619285516250514 ], [ -122.31924624577745, 47.618853774343563 ], [ -122.320233281114923, 47.618626781785451 ], [ -122.320233281114923, 47.619285516250514 ] ] ] } },{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -122.320233281114923, 47.619285516250514 ], [ -122.320233281114923, 47.620103004637258 ], [ -122.3192147446495, 47.620078232660887 ], [ -122.319235138533656, 47.619285516250514 ], [ -122.320233281114923, 47.619285516250514 ] ] ] } }]}')
-            # oak harbor
-            sub_file.write(
-                '{"type": "FeatureCollection","features": [{ "type": "Feature", "properties": { }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -122.6698850202686, 48.286157259313114 ], [ -122.63851879396184, 48.286157259313114 ],[ -122.63851879396184, 48.297497546405765 ], [-122.6698850202686,48.297497546405765 ], [ -122.6698850202686, 48.286157259313114 ] ] ] }  }]}')
 
     @patch('osw_confidence_metric.osm_data_handler.OSMDataHandler')
     @patch('osw_confidence_metric.area_analyzer.AreaAnalyzer')

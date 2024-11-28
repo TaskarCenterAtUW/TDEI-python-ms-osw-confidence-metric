@@ -1,16 +1,12 @@
-import os
 import json
 import shutil
-import zipfile
 import unittest
 from pathlib import Path
 import osw_confidence_metric
-from tempfile import TemporaryDirectory
 from unittest.mock import Mock, MagicMock, patch
 from src.service.osw_confidence_service import OSWConfidenceService
-from src.service.osw_confidence_metric_calculator import OSWConfidenceMetricCalculator
 from python_ms_core.core.queue.models.queue_message import QueueMessage
-from src.models.confidence_request import ConfidenceRequest, RequestData
+from src.models.confidence_request import ConfidenceRequest
 from src.models.confidence_response import ConfidenceResponse, ResponseData
 
 FILE_PATH = f'{Path.cwd()}/tests/files/incoming_message.json'
@@ -18,6 +14,10 @@ ZIP_FILE_PATH = f'{Path.cwd()}/tests/files/osw.zip'
 TEST_FILE = open(FILE_PATH)
 TEST_DATA = json.loads(TEST_FILE.read())
 DOWNLOAD_PATH = f'{Path.cwd()}/src/downloads'
+
+
+def create_sample_zip_file(test_zip_file_path):
+    shutil.copy(ZIP_FILE_PATH, test_zip_file_path)
 
 
 class TestOSWConfidenceService(unittest.TestCase):
@@ -33,11 +33,6 @@ class TestOSWConfidenceService(unittest.TestCase):
             self.service.settings = MagicMock()
             self.service.settings.get_download_folder = MagicMock()
             self.service.settings.get_download_folder.return_value = DOWNLOAD_PATH
-            # self.service.calculate_confidence = MagicMock()
-            # self.service.calculate_confidence.return_value = 0.75
-
-    def create_sample_zip_file(self, test_zip_file_path):
-        shutil.copy(ZIP_FILE_PATH, test_zip_file_path)
 
     @patch.object(OSWConfidenceService, 'subscribe')
     def test_start_listening(self, mock_subscribe):
@@ -73,7 +68,7 @@ class TestOSWConfidenceService(unittest.TestCase):
         request = ConfidenceRequest(**msg_data)
         job_id = request.data.jobId
         zip_file_path = f'{DOWNLOAD_PATH}/{job_id}.zip'
-        self.create_sample_zip_file(zip_file_path)
+        create_sample_zip_file(zip_file_path)
 
         mock_download_single_file.return_value = zip_file_path
         mock_osm_data_handler_instance = MagicMock()
@@ -349,11 +344,6 @@ class TestOSWConfidenceServiceOther(unittest.TestCase):
         })
         mock_publish.assert_called_once()
         mock_topic.publish.assert_called_once_with(data=mock_queue_message.data_from.return_value)
-
-
-
-
-
 
 
 if __name__ == '__main__':

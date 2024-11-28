@@ -14,7 +14,6 @@ from python_ms_core.core.queue.models.queue_message import QueueMessage
 from src.models.confidence_response import ConfidenceResponse, ResponseData
 import threading
 
-
 logging.basicConfig()
 logger = logging.getLogger("OSWConfService")
 logger.setLevel(logging.INFO)
@@ -53,7 +52,8 @@ class OSWConfidenceService:
         """
         self.core = Core()
         self.settings = Settings()
-        self.incoming_topic = self.core.get_topic(self.settings.incoming_topic_name, max_concurrent_messages=self.settings.max_concurrent_messages)
+        self.incoming_topic = self.core.get_topic(self.settings.incoming_topic_name,
+                                                  max_concurrent_messages=self.settings.max_concurrent_messages)
         self.storage_client = self.core.get_storage_client()
         self.listening_thread = threading.Thread(target=self.subscribe)
         self.listening_thread.start()
@@ -118,36 +118,37 @@ class OSWConfidenceService:
         local_base_path = os.path.join(self.settings.get_download_folder(), request.data.jobId)
         if not os.path.exists(local_base_path):
             os.makedirs(local_base_path)
-        
+
         jobId = request.data.jobId
         is_success = False
         scores = None
 
         try:
-            if not self.settings.is_simulated() :
+            if not self.settings.is_simulated():
                 osw_file_local_path = os.path.join(local_base_path, f'{jobId}.zip')
                 self.download_single_file(request.data.data_file, osw_file_local_path)
-                
+
                 sub_regions_file_local_path = None
                 if request.data.sub_regions_file:
                     sub_regions_file_local_path = os.path.join(local_base_path, f'{jobId}_subregions.geojson')
                     self.download_single_file(request.data.sub_regions_file, sub_regions_file_local_path)
 
-                metric = OSWConfidenceMetricCalculator(output_path=local_base_path, zip_file=osw_file_local_path, job_id=jobId, sub_regions_file=sub_regions_file_local_path)
+                metric = OSWConfidenceMetricCalculator(output_path=local_base_path, zip_file=osw_file_local_path,
+                                                       job_id=jobId, sub_regions_file=sub_regions_file_local_path)
 
                 scores = metric.calculate_score()
-                logger.info('Score from OSWConfidenceMetricCalculator:', scores)
-                
+                logger.info('Score from OSWConfidenceMetricCalculator: %s', scores)
+
                 metric.clean_up_files()
                 logger.info(' Cleaned up the temp directory')
-                
+
                 if scores is not None:
                     is_success = True
-            else : # Simulated
-                scores = json.loads('{"type": "FeatureCollection", "features": [{"id": "0", "type": "Feature", "properties": {"confidence_score": 0.75}, "geometry": {"type": "Polygon", "coordinates": [[[-122.1322201, 47.63528], [-122.1378655, 47.6353141], [-122.1395176, 47.6355614], [-122.1431969, 47.6365115], [-122.1443805, 47.6385402], [-122.1469453, 47.6460242], [-122.1429792, 47.6495373], [-122.1403351, 47.6497278], [-122.1325839, 47.6498422],  [-122.1321999, 47.6496722], [-122.1321845, 47.6496558], [-122.1285859, 47.6378078], [-122.1322201, 47.63528]]]}}]}')
+            else:  # Simulated
+                scores = json.loads(
+                    '{"type": "FeatureCollection", "features": [{"id": "0", "type": "Feature", "properties": {"confidence_score": 0.75}, "geometry": {"type": "Polygon", "coordinates": [[[-122.1322201, 47.63528], [-122.1378655, 47.6353141], [-122.1395176, 47.6355614], [-122.1431969, 47.6365115], [-122.1443805, 47.6385402], [-122.1469453, 47.6460242], [-122.1429792, 47.6495373], [-122.1403351, 47.6497278], [-122.1325839, 47.6498422],  [-122.1321999, 47.6496722], [-122.1321845, 47.6496558], [-122.1285859, 47.6378078], [-122.1322201, 47.63528]]]}}]}')
                 is_success = True
         except Exception as e:
-            traceback.print_exc()
             logger.error(f"Failed to calculate confidence: {e}")
             failed_message = f'Failed to calculate confidence : {e}'
 
