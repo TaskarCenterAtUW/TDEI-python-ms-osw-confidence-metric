@@ -40,36 +40,28 @@ jobs:
             echo "Unknown branch: $branch_name"
             exit 1
           fi
+          
 
       - name: Run tests with coverage
         run: |
-          python -m coverage run --source=src -m unittest discover -v tests/unit_tests
-          coverage report --fail-under=85
-          
+          timestamp=$(date '+%Y-%m-%d_%H-%M-%S')
+          mkdir -p test_results
+          log_file="test_results/${timestamp}_report.log"
+          echo -e "\nTest Cases Report Report\n" >> $log_file
+          python -m coverage run --source=src -m unittest discover -v tests/unit_tests | tee -a $log_file
+          echo -e "\nCoverage Report\n" >> $log_file
+          coverage report | tee -a $log_file
 
-#      - name: Run tests with coverage
-#        run: |
-#          timestamp=$(date '+%Y-%m-%d_%H-%M-%S')
-#          mkdir -p test_results
-#          log_file="test_results/${timestamp}_report.log"
-#          echo -e "\nTest Cases Report Report\n" >> $log_file
-#          python -m coverage run --source=src -m unittest discover -v tests/unit_tests >> $log_file 2>&1
-#          echo -e "\nCoverage Report\n" >> $log_file
-#          coverage report >> $log_file
-#          # Explicitly print the exit code to debug
-#          echo "Test exit code: $?"
-#
-#
-#      - name: Check coverage
-#        run: |
-#          coverage report --fail-under=85
-#
-#      - name: Upload report to Azure
-#        uses: LanceMcCarthy/Action-AzureBlobUpload@v2
-#        with:
-#          source_folder: 'test_results'
-#          destination_folder: '${{ env.output_folder }}'
-#          connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-#          container_name: 'osw-confidence-metric-service '
-#          clean_destination_folder: false
-#          delete_if_exists: false
+      - name: Check coverage
+        run: |
+          coverage report --fail-under=85
+
+      - name: Upload report to Azure
+        uses: LanceMcCarthy/Action-AzureBlobUpload@v2
+        with:
+          source_folder: 'test_results'
+          destination_folder: '${{ env.output_folder }}'
+          connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          container_name: 'osw-confidence-metric-service '
+          clean_destination_folder: false
+          delete_if_exists: false
