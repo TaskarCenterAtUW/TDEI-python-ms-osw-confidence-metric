@@ -47,10 +47,12 @@ jobs:
           mkdir -p test_results
           log_file="test_results/${timestamp}_report.log"
           echo -e "\nTest Cases Report Report\n" >> $log_file
-          # Run the tests and append output to the log file
-           python -m coverage run --source=src -m unittest discover -v tests/unit_tests >> $log_file 2>&1
+          python -m coverage run --source=src -m unittest discover -v tests/unit_tests >> $log_file 2>&1
           echo -e "\nCoverage Report\n" >> $log_file
           coverage report >> $log_file
+          # Explicitly print the exit code to debug
+          echo "Test exit code: $?"
+
 
       - name: Check coverage
         run: |
