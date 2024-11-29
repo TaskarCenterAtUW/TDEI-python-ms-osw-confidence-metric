@@ -26,6 +26,15 @@ class TestSettings(unittest.TestCase):
 
         self.assertEqual(download_folder, DOWNLOAD_PATH)
 
+    def test_is_simulated(self):
+        settings_instance = Settings()
+        settings_instance.simulate = 'YES'
+        result = settings_instance.is_simulated()
+
+        self.assertTrue(result)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

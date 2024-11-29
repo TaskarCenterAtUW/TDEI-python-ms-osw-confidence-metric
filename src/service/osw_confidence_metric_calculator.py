@@ -141,7 +141,7 @@ class OSWConfidenceMetricCalculator:
                 for index, feature in enumerate(sub_regions.features):
                     # print(index, feature)
                     start_time = time.time()
-                    logger.info(" calculating confidence metric for sub_region: ", index, " of job_id: ", self.job_id)
+                    logger.info(" calculating confidence metric for sub_region: %d of job_id: %s", index, self.job_id)
                     if isinstance(feature, geojson.Feature) and isinstance(feature.geometry, geojson.Polygon):
                     # # if isinstance(feature, geojson.Feature):
                     # if isinstance(feature.geometry, geojson.Polygon):
