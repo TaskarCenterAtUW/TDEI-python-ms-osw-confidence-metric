@@ -2,6 +2,7 @@ import os
 import json
 import shutil
 import unittest
+import python_ms_core
 from pathlib import Path
 import osw_confidence_metric
 from unittest.mock import Mock, MagicMock, patch
@@ -338,11 +339,16 @@ class TestOSWConfidenceServiceOther(unittest.TestCase):
         # Act
         self.service.send_response_message(response=response)
 
+        resp_data = response_data.__dict__
+        resp_data['package'] = {
+            'python-ms-core': python_ms_core.__version__,
+            'osw-confidence-metric': osw_confidence_metric.__version__
+        }
         # Assert
         mock_queue_message.data_from.assert_called_once_with({
             'messageId': response.messageId,
             'messageType': response.messageType,
-            'data': response_data.__dict__
+            'data': resp_data
         })
         mock_publish.assert_called_once()
         mock_topic.publish.assert_called_once_with(data=mock_queue_message.data_from.return_value)
