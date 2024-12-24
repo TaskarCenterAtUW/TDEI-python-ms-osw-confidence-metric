@@ -22,13 +22,15 @@ python 3.10
 ```shell
 OSM_USERNAME=xxx
 OSM_PASSWORD=xxx
-PROVIDER=xxx
+PROVIDER=Azure
 QUEUECONNECTION=Endpoint=sb://xxxxxxxxxxxxx
 STORAGECONNECTION=DefaultEndpointsProtocol=https;xxxxxxxxxxxxx
 CONFIDENCE_REQ_TOPIC=<Confidence request topic>
 CONFIDENCE_REQ_SUB= <Confidence request subscription>
 CONFIDENCE_RES_TOPIC=<Confidence response topic>
-MAX_CONCURRENT_MESSAGES=xxx
+CONTAINER_NAME= <Container name>
+SIMULATE_METRIC=<YES/NO>  # Optional if not provided defaults to YES
+MAX_CONCURRENT_MESSAGES=xxx # Optional if not provided defaults to 1
 ```
 Note: Replace the endpoints with the actual endpoints of the environment you want to run the service in
 
