@@ -196,11 +196,16 @@ class OSWConfidenceService:
         Parameters:
         - `response` (ConfidenceResponse): The confidence calculation response.
         """
+        resp_data = asdict(response.data)
+        resp_data['package'] = {
+            'python-ms-core': Core.__version__,
+            'osw-confidence-metric': osw_confidence_metric.__version__
+        }
         try:
             queue_message = QueueMessage.data_from({
                 'messageId': response.messageId,
                 'messageType': response.messageType,
-                'data': asdict(response.data)
+                'data': resp_data
             })
             self.core.get_topic(self.settings.outgoing_topic_name).publish(data=queue_message)
             logger.info(f'Published response for {response.data.jobId}')
