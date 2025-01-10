@@ -15,7 +15,7 @@ def clean_up(path):
     - Checks if the specified path exists.
     - If the path points to a file:
       - Prints a message indicating the removal of the file.
-      - Uses `os.remove(path)` to delete the file.
+      - Uses `os.remove(path)` to delete the file.a
     - If the path points to a directory:
       - Prints a message indicating the removal of the directory.
       - Uses `shutil.rmtree(path, ignore_errors=False)` to recursively remove the directory and its contents.
